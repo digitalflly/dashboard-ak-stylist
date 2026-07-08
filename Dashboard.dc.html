@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AK Stylist - Gestão de Tráfego</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/styles.css">
+  <script src="_ds/l-marques-design-system-e6e391ed-f071-43a0-beee-b7d06c91b728/_ds_bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    *{ box-sizing:border-box; }
+    body{ margin:0; }
+    /* ---- compat shim: dashboard's old token names → lê marques tokens ---- */
+    :root{
+      --font-sans: var(--font-text);
+      --wine-800: var(--forest); --wine-900: var(--forest);
+      --cream: var(--bone);
+      --sand-400: var(--forest-25);
+      --gold-deep: var(--forest);
+      --accent: var(--forest); --accent-soft: var(--forest-06);
+      --surface-page: #f1f0ea; --surface-card: var(--bone); --surface: var(--bone);
+      --border-soft: var(--line-hairline); --border-strong: var(--line-strong);
+      --ink-300: var(--text-faint);
+      --warning: var(--forest); --warning-bg: #ecebe3;
+      --success: #4a6b4f; --danger: #8c2f2f;
+      --radius-xs: 2px; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 8px; --radius-pill: 999px;
+      --shadow-sm: 0 1px 2px rgba(23,34,25,0.06);
+      --transition-base: all 240ms cubic-bezier(0.16,1,0.3,1);
+      --ls-label: 0.18em;
+    }
+    ::-webkit-scrollbar{ width:10px; height:10px; }
+    ::-webkit-scrollbar-thumb{ background:var(--sand-400); border-radius:999px; border:3px solid var(--surface-page); }
+    .dash, .dash *:not([data-keepcase]){ text-transform: lowercase !important; }
+    .dash [data-keepcase]{ text-transform: none !important; }
+    /* dashboard surfaces re-skinned on lê marques tokens */
+    .b-card{ background:var(--surface-card); border:1px solid var(--border-soft); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); }
+    .b-card--bare{ background:transparent; border:1px dashed var(--border-strong); box-shadow:none; }
+    .b-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 8px; font-family:var(--font-sans); font-weight:600; font-size:11px; letter-spacing:0.04em; border-radius:var(--radius-pill); background:var(--accent-soft); color:var(--wine-800); }
+    .b-badge--warning{ background:#ecebe3; color:var(--forest); }
+    .b-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 24px; font-family:var(--font-sans); font-weight:500; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; border-radius:var(--radius-xs); border:1px solid transparent; cursor:pointer; transition:var(--transition-base); }
+    .b-btn--primary{ background:var(--wine-800); color:var(--cream); border-color:var(--wine-800); box-shadow:var(--shadow-sm); }
+    .b-btn--primary:hover{ background:var(--wine-900); border-color:var(--wine-900); }
+    .b-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+    .b-select{ font-family:var(--font-sans); font-size:13px; color:var(--text-strong); background:var(--surface-card); border:1px solid var(--border-strong); border-radius:var(--radius-sm); cursor:pointer; }
+    .b-select:focus{ outline:none; border-color:var(--wine-800); box-shadow:0 0 0 3px var(--accent-soft); }
+    .b-avatar{ display:inline-flex; align-items:center; justify-content:center; border-radius:50%; overflow:hidden; }
+    .b-avatar--lg{ width:52px; height:52px; }
+  </style>
+</helmet>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+    <rect width="100" height="100" fill="#172219"></rect>
+    <rect x="30" y="54" width="9" height="16" rx="1.5" fill="#FFFDF7"></rect>
+    <rect x="45.5" y="44" width="9" height="26" rx="1.5" fill="#5E6E60"></rect>
+    <rect x="61" y="34" width="9" height="36" rx="1.5" fill="#FFFDF7"></rect>
+    <path d="M30 40 L45 36 L61 28 L70 24" fill="none" stroke="#B0B7AC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+</template>
+
+<div class="dash" style="min-height:100vh; background:var(--surface-page); font-family:var(--font-sans); color:var(--text-body); padding-bottom:64px;">
+
+  <!-- ===== HEADER ===== -->
+  <header style="background:var(--surface-card); border-bottom:1px solid var(--border-soft); position:sticky; top:0; z-index:20;">
+    <div style="max-width:1280px; margin:0 auto; padding:18px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div class="b-avatar b-avatar--lg" style="background:var(--wine-800); color:var(--surface-card); font-family:var(--font-display); font-size:24px;">{{ brand.initial }}</div>
+        <div>
+          <div style="font-family:var(--font-display); font-size:26px; line-height:1; color:var(--text-strong); letter-spacing:-0.01em;">{{ brand.name }}</div>
+          <div style="font-size:13px; color:var(--text-muted); margin-top:3px;">@{{ brand.handle }} · gestão de tráfego</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="text-align:right; line-height:1.3;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Atualizado</div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-strong); white-space:nowrap;">{{ lastSync }}</div>
+          <div style="display:flex; align-items:center; gap:5px; justify-content:flex-end; margin-top:3px;">
+            <span style="width:7px; height:7px; border-radius:999px; background:{{ sourceColor }};"></span>
+            <span style="font-size:10.5px; color:{{ sourceColor }};">{{ sourceLabel }}</span>
+          </div>
+        </div>
+        <button class="b-btn b-btn--primary b-btn--md" onClick="{{ onRefresh }}" disabled="{{ refreshing }}" style="min-width:128px;">{{ refreshLabel }}</button>
+      </div>
+    </div>
+
+    <div style="max-width:1280px; margin:0 auto; padding:0 32px 14px; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <nav style="display:flex; gap:4px;">
+        <sc-for list="{{ pages }}" as="p" hint-placeholder-count="3">
+          <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+        </sc-for>
+      </nav>
+      <div style="display:flex; align-items:flex-end; gap:12px;">
+        <sc-if value="{{ showFilters }}" hint-placeholder-val="{{ true }}">
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Mês</span>
+          <select class="b-select" value="{{ month }}" onChange="{{ onMonth }}" style="height:38px; padding:0 12px; min-width:150px;">
+            <sc-for list="{{ monthOptions }}" as="o" hint-placeholder-count="3">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Semana</span>
+          <select class="b-select" value="{{ week }}" onChange="{{ onWeek }}" style="height:38px; padding:0 12px; min-width:230px;">
+            <sc-for list="{{ weekOptions }}" as="o" hint-placeholder-count="5">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        </sc-if>
+        <sc-if value="{{ showFunnelFilters }}" hint-placeholder-val="{{ false }}">
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Mês</span>
+          <select class="b-select" value="{{ candFilters.month }}" onChange="{{ candFilters.onMonth }}" style="height:38px; padding:0 12px; min-width:150px;">
+            <sc-for list="{{ candFilters.monthOptions }}" as="o" hint-placeholder-count="4">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Data inicial</span>
+          <input type="date" class="b-select" value="{{ candFilters.from }}" min="{{ candFilters.min }}" max="{{ candFilters.max }}" onChange="{{ candFilters.onFrom }}" style="height:38px; padding:0 12px;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Data final</span>
+          <input type="date" class="b-select" value="{{ candFilters.to }}" min="{{ candFilters.min }}" max="{{ candFilters.max }}" onChange="{{ candFilters.onTo }}" style="height:38px; padding:0 12px;">
+        </label>
+        <sc-if value="{{ candFilters.hasFilter }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ candFilters.onClear }}" style="height:38px; padding:0 14px; font-family:var(--font-sans); font-size:12px; cursor:pointer; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted);">Limpar</button>
+        </sc-if>
+        </sc-if>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1280px; margin:0 auto; padding:28px 32px 0;">
+
+    <!-- page title strip -->
+    <div style="display:flex; align-items:baseline; gap:14px; margin-bottom:22px;">
+      <h1 style="font-family:var(--font-display); font-size:34px; line-height:1; margin:0; color:var(--text-strong); letter-spacing:-0.01em;">{{ pageTitle }}</h1>
+    </div>
+
+    <sc-if value="{{ dormant }}" hint-placeholder-val="{{ false }}">
+      <div class="b-card" style="padding:16px 20px; margin-bottom:22px; display:flex; gap:12px; align-items:flex-start; background:var(--warning-bg); border-color:transparent;">
+        <span style="flex:none; width:8px; height:8px; border-radius:999px; background:var(--warning); margin-top:7px;"></span>
+        <div>
+          <div data-keepcase="1" style="font-size:13.5px; font-weight:600; color:var(--wine-900); line-height:1.4;">Conta sem atividade em 2026 — pronta para retomar</div>
+          <div data-keepcase="1" style="font-size:12.5px; color:var(--wine-900); line-height:1.5; margin-top:3px;">A conexão ao vivo com @{{ brand.handle }} está funcionando, mas o perfil não registra publicações nem alcance em 2026 (conta dormente). Os números abaixo refletem o que a API retorna hoje — assim que você voltar a postar, o painel preenche sozinho.</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ PAGE: CONTA ============ -->
+    <sc-if value="{{ isConta }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <!-- KPI grid -->
+      <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:10px; margin-bottom:18px;">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="8">
+          <div class="b-card" style="padding:12px 12px; min-height:104px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid {{ k.accent }};">
+            <div style="font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); line-height:1.25;">{{ k.label }}</div>
+            <div>
+              <div style="font-size:21px; font-weight:600; color:var(--text-strong); line-height:1.05; letter-spacing:-0.02em;">{{ k.value }}</div>
+              <div style="display:flex; align-items:baseline; gap:6px; margin-top:4px; min-height:16px; flex-wrap:wrap;">
+                <span style="font-size:11px; font-weight:600; color:{{ k.deltaColor }};">{{ k.deltaText }}</span>
+                <span style="font-size:11px; color:var(--ink-300);">{{ k.sub }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- charts 1 & 2 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div class="b-card" style="padding:20px 22px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Crescimento</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong); line-height:1.1; margin-bottom:12px;">Seguidores no período</div>
+          <div style="height:230px; position:relative;"><canvas id="chart-followers"></canvas></div>
+        </div>
+        <div class="b-card" style="padding:20px 22px;">
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia da semana</div>
+              <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong); line-height:1.1;">Métrica por semana</div>
+            </div>
+            <select class="b-select" value="{{ metric2 }}" onChange="{{ onMetric2 }}" style="height:34px; padding:0 10px; min-width:180px;">
+              <sc-for list="{{ metric2Options }}" as="o" hint-placeholder-count="5">
+                <option value="{{ o.value }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div style="height:230px; position:relative;"><canvas id="chart-metric2"></canvas></div>
+        </div>
+      </div>
+
+      <!-- charts 3 & 4: engagement per week -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="b-card" style="padding:20px 22px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia da semana</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong); line-height:1.1; margin-bottom:12px;">% engajamento seguidores</div>
+          <div style="height:230px; position:relative;"><canvas id="chart-engfollowers"></canvas></div>
+        </div>
+        <div class="b-card" style="padding:20px 22px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia da semana</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong); line-height:1.1; margin-bottom:12px;">% engajamento geral</div>
+          <div style="height:230px; position:relative;"><canvas id="chart-enggeneral"></canvas></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ PAGE: CONTEUDOS ============ -->
+    <sc-if value="{{ isConteudos }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <sc-if value="{{ noMetrics }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card" style="padding:13px 16px; margin-bottom:18px; display:flex; gap:10px; align-items:flex-start; background:var(--warning-bg); border-color:transparent;">
+          <span style="flex:none; width:7px; height:7px; border-radius:999px; background:var(--warning); margin-top:6px;"></span>
+          <span data-keepcase="1" style="font-size:12px; color:var(--wine-900); line-height:1.5;">{{ metricsNote }}</span>
+        </div>
+      </sc-if>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+        <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong);">Conteúdos postados</div>
+        <span class="b-badge">{{ postedCount }}</span>
+      </div>
+      <sc-if value="{{ hasPosted }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(248px, 1fr)); gap:18px; margin-bottom:34px;">
+          <sc-for list="{{ posted }}" as="c" hint-placeholder-count="6">
+            <div class="b-card" style="padding:0; overflow:hidden;">
+              <div style="{{ c.coverStyle }}">
+                <span style="font-family:var(--font-display); font-size:80px; color:rgba(250,248,247,0.16); line-height:1; user-select:none;">{{ brand.initial }}</span>
+                <span class="b-badge" style="position:absolute; top:10px; left:10px; background:rgba(23,34,25,0.62); color:var(--surface-card); border:0; backdrop-filter:blur(2px);">{{ c.typeLabel }}</span>
+                <span style="position:absolute; bottom:10px; right:12px; font-size:12px; color:var(--surface-card); font-weight:500; text-shadow:0 1px 4px rgba(0,0,0,0.5);">{{ c.date }}</span>
+              </div>
+              <div style="padding:14px 16px;">
+                <div data-keepcase="1" style="font-size:13px; color:var(--text-strong); font-weight:500; line-height:1.35; height:36px; overflow:hidden;">{{ c.caption }}</div>
+                <div style="display:flex; gap:14px; margin:11px 0 12px; font-size:12px; color:var(--text-body);">
+                  <span>♥ {{ c.likes }}</span>
+                  <span>◷ {{ c.comments }}</span>
+                  <span>↗ {{ c.shares }}</span>
+                  <span>⤓ {{ c.saves }}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; border-top:1px solid var(--border-soft); padding-top:11px;">
+                  <sc-for list="{{ c.metrics }}" as="m" hint-placeholder-count="8">
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
+                      <span style="font-size:11px; color:var(--text-muted);">{{ m.label }}</span>
+                      <span style="font-size:12px; font-weight:600; color:var(--text-strong);">{{ m.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ contentEmpty }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card b-card--bare" style="text-align:center; padding:48px; color:var(--text-muted);">Nenhum conteúdo publicado neste período.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- ============ PAGE: INSIGHTS ============ -->
+    <sc-if value="{{ isInsights }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <!-- média do período -->
+      <div class="b-card" style="padding:22px 24px; margin-bottom:18px;">
+        <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ avgEyebrow }}</div>
+        <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong); margin-bottom:16px;">{{ avgTitle }}</div>
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:14px;">
+          <sc-for list="{{ averages }}" as="a" hint-placeholder-count="8">
+            <div style="border-left:2px solid {{ accent }}; padding-left:12px;">
+              <div style="font-size:11px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted);">{{ a.label }}</div>
+              <div style="font-size:22px; font-weight:600; color:var(--text-strong); margin-top:3px; letter-spacing:-0.02em;">{{ a.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ noMetrics }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card" style="padding:18px 22px; display:flex; gap:11px; align-items:flex-start; background:var(--warning-bg); border-color:transparent;">
+          <span style="flex:none; width:8px; height:8px; border-radius:999px; background:var(--warning); margin-top:6px;"></span>
+          <span data-keepcase="1" style="font-size:13px; color:var(--wine-900); line-height:1.55;">{{ metricsNote }} Por isso o ranking Top 3 e os aprendizados por publicação ficam indisponíveis ao vivo — selecione o snapshot de demonstração para vê-los.</span>
+        </div>
+      </sc-if>
+
+      <!-- top 3 -->
+      <sc-if value="{{ metricsAvailable }}" hint-placeholder-val="{{ true }}">
+      <div class="b-card" style="padding:22px 24px; margin-bottom:18px;">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
+          <div>
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Ranking</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:20px; color:var(--text-strong);">Top 3 conteúdos</div>
+          </div>
+          <select class="b-select" value="{{ topMetric }}" onChange="{{ onTopMetric }}" style="height:36px; padding:0 12px; min-width:220px;">
+            <sc-for list="{{ topMetricOptions }}" as="o" hint-placeholder-count="6">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;">
+          <sc-for list="{{ top3 }}" as="t" hint-placeholder-count="3">
+            <div style="display:flex; gap:14px; align-items:center; border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:12px;">
+              <div style="{{ t.coverStyle }}">
+                <span style="font-family:var(--font-display); font-size:32px; color:rgba(250,248,247,0.25);">{{ t.rank }}</span>
+              </div>
+              <div style="min-width:0; flex:1;">
+                <div data-keepcase="1" style="font-size:12px; color:var(--text-strong); font-weight:500; line-height:1.3; overflow:hidden; max-height:32px;">{{ t.caption }}</div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">{{ t.typeLabel }} · {{ t.date }}</div>
+                <div style="font-size:20px; font-weight:600; color:{{ accent }}; margin-top:6px; letter-spacing:-0.02em;">{{ t.metricValue }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- worked / not worked -->
+      <sc-if value="{{ metricsAvailable }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div class="b-card" style="padding:22px 24px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <span style="width:9px; height:9px; border-radius:999px; background:var(--success);"></span>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:19px; color:var(--text-strong);">O que funcionou</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ worked }}" as="w" hint-placeholder-count="4">
+              <div style="border-left:2px solid var(--success); padding-left:12px;">
+                <div style="font-size:13px; font-weight:600; color:var(--text-strong); line-height:1.35;">{{ w.title }}</div>
+                <div style="font-size:12.5px; color:var(--text-body); line-height:1.45; margin-top:3px;">{{ w.detail }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="b-card" style="padding:22px 24px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <span style="width:9px; height:9px; border-radius:999px; background:var(--danger);"></span>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:19px; color:var(--text-strong);">O que não funcionou</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <sc-for list="{{ notWorked }}" as="w" hint-placeholder-count="4">
+              <div style="border-left:2px solid var(--danger); padding-left:12px;">
+                <div style="font-size:13px; font-weight:600; color:var(--text-strong); line-height:1.35;">{{ w.title }}</div>
+                <div style="font-size:12.5px; color:var(--text-body); line-height:1.45; margin-top:3px;">{{ w.detail }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- ============ PAGE: CANDIDATURAS ============ -->
+    <sc-if value="{{ isCandidaturas }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div style="display:flex; gap:12px; margin:-4px 0 16px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <sc-for list="{{ funnelTabs }}" as="f" hint-placeholder-count="2">
+            <sc-if value="{{ f.active }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ f.onClick }}" style="font-family:var(--font-sans); font-size:12.5px; font-weight:600; cursor:pointer; padding:8px 16px; border-radius:6px; border:1px solid #172219; background:#172219; color:var(--cream); transition:var(--transition-base);">{{ f.label }}</button>
+            </sc-if>
+            <sc-if value="{{ f.inactive }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ f.onClick }}" style="font-family:var(--font-sans); font-size:12.5px; font-weight:500; cursor:pointer; padding:8px 16px; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted); transition:var(--transition-base);">{{ f.label }}</button>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+          <sc-if value="{{ showProductFilter }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:2px;">Produtos</span>
+            <sc-for list="{{ products }}" as="p" hint-placeholder-count="3">
+              <sc-if value="{{ p.active }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid #172219; background:#172219; color:var(--cream); transition:var(--transition-base);">{{ p.label }}</button>
+              </sc-if>
+              <sc-if value="{{ p.inactive }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted); transition:var(--transition-base);">{{ p.label }}</button>
+              </sc-if>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ showCampFilter }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Campanha</span>
+            <select data-keepcase="1" onChange="{{ onCampFilter }}" value="{{ campFilterValue }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:7px 12px; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-strong); max-width:340px;">
+              <sc-for list="{{ campOptions }}" as="o" hint-placeholder-count="3">
+                <option value="{{ o.value }}">{{ o.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <sc-if value="{{ candReady }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <sc-if value="{{ salesShow }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:18px 0 16px;">
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Vendas</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; margin-bottom:16px;">
+          <sc-for list="{{ salesKpis }}" as="k" hint-placeholder-count="6">
+            <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
+              <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ k.label }}</div>
+              <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em;">{{ k.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ salesDailyShow }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card" style="padding:22px 24px; margin-bottom:16px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Vendas por dia</div>
+          <div style="height:230px; position:relative;"><canvas id="sales-daily"></canvas></div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ salesUtmShow }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:16px;">
+          <div class="b-card" style="padding:22px 24px; display:flex; flex-direction:column;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">UTM Source</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Origem das vendas</div>
+            <div style="height:200px; position:relative;"><canvas id="sales-utm"></canvas></div>
+            <div id="sales-utm-lg" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; margin-top:14px;"></div>
+          </div>
+          <sc-if value="{{ salesCampShow }}" hint-placeholder-val="{{ false }}">
+          <div class="b-card" style="padding:22px 24px; display:flex; flex-direction:column;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">UTM Campaign</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Campanha de origem</div>
+            <div style="height:200px; position:relative;"><canvas id="sales-utmcamp"></canvas></div>
+            <div id="sales-utmcamp-lg" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; margin-top:14px;"></div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ salesContShow }}" hint-placeholder-val="{{ false }}">
+          <div class="b-card" style="padding:22px 24px; display:flex; flex-direction:column;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">UTM Content</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Conteúdo de origem</div>
+            <div style="height:200px; position:relative;"><canvas id="sales-utmcont"></canvas></div>
+            <div id="sales-utmcont-lg" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; margin-top:14px;"></div>
+          </div>
+          </sc-if>
+        </div>
+        </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ investShow }}" hint-placeholder-val="{{ false }}">
+        <div style="border-top:1px solid var(--border-soft); margin:26px 0 18px; padding-top:24px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">{{ investEyebrow }}</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:16px;">
+          <sc-for list="{{ investStats }}" as="st" hint-placeholder-count="5">
+            <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
+              <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ st.label }}</div>
+              <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em;">{{ st.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ showAdsets }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div id="inv-funnel" class="b-card" style="padding:22px 24px;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:16px;">Dados de conversão</div>
+            <div style="display:flex; flex-direction:column; gap:5px;">
+              <sc-for list="{{ investStages }}" as="s" hint-placeholder-count="6">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div style="{{ s.barStyle }} display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 16px; border-radius:5px; color:var(--cream); min-width:120px; flex:none;">
+                    <span style="font-size:12px; font-weight:500;">{{ s.label }}</span>
+                    <span data-keepcase="1" style="font-size:13px; font-weight:600;">{{ s.value }}</span>
+                  </div>
+                  <span data-keepcase="1" style="font-size:12px; font-weight:600; color:var(--text-strong); white-space:nowrap;">{{ s.left }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div id="inv-adset-card" class="b-card" style="padding:22px 24px; min-width:0; display:flex; flex-direction:column;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+            <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+              <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15;">Conjuntos de anúncio</div>
+              <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ adsStatus }}</span>
+            </div>
+            <div style="overflow:auto; margin:0 -4px; flex:1 1 0; min-height:0;">
+              <table style="border-collapse:collapse; width:100%; table-layout:fixed;">
+                <thead>
+                  <tr style="text-align:right;">
+                    <th onClick="{{ hSet.name }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; text-align:left; padding:0 8px 10px 4px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; width:32%; cursor:pointer; user-select:none;">Conjunto{{ arSet.name }}</th>
+                    <th onClick="{{ hSet.impr }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">Impr.{{ arSet.impr }}</th>
+                    <th onClick="{{ hSet.ctr }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">CTR{{ arSet.ctr }}</th>
+                    <th onClick="{{ hSet.c2 }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">{{ colS2 }}{{ arSet.c2 }}</th>
+                    <th onClick="{{ hSet.c3 }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">{{ colS3 }}{{ arSet.c3 }}</th>
+                    <th onClick="{{ hSet.c4 }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; padding:0 8px 10px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">{{ colS4 }}{{ arSet.c4 }}</th>
+                    <th onClick="{{ hSet.c5 }}" style="position:sticky; top:0; background:var(--surface, #fff); z-index:1; text-align:right; padding:0 4px 10px 8px; font-size:10px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">{{ colS5 }}{{ arSet.c5 }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ investAdsets }}" as="a" hint-placeholder-count="4">
+                    <tr style="border-top:1px solid var(--border-soft);">
+                      <td style="padding:10px 8px 10px 4px;">
+                        <span style="font-size:12px; font-weight:500; color:var(--text-strong); line-height:1.3; word-break:break-word;">{{ a.name }}</span>
+                      </td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 8px; font-size:12.5px; color:var(--text-strong); white-space:nowrap;">{{ a.impr }}</td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 8px; font-size:12.5px; color:var(--text-strong); white-space:nowrap;">{{ a.ctr }}</td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 8px; font-size:12.5px; color:var(--text-strong); white-space:nowrap;">{{ a.clk }}</td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 8px; font-size:12.5px; color:var(--text-strong); white-space:nowrap;">{{ a.lpv }}</td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 8px; font-size:12.5px; color:var(--text-strong); white-space:nowrap;">{{ a.cr }}</td>
+                      <td data-keepcase="1" style="text-align:right; padding:10px 4px 10px 8px; font-size:12.5px; font-weight:600; color:#172219; white-space:nowrap;">{{ a.leads }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ segMode }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div class="b-card" style="padding:22px 24px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:16px;">Dados de conversão</div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ investStages }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="{{ s.barStyle }} display:flex; justify-content:space-between; align-items:center; gap:12px; padding:17px 16px; border-radius:5px; color:var(--cream); min-width:120px; flex:none;">
+                  <span style="font-size:12px; font-weight:500;">{{ s.label }}</span>
+                  <span data-keepcase="1" style="font-size:13px; font-weight:600;">{{ s.value }}</span>
+                </div>
+                <span data-keepcase="1" style="font-size:12px; font-weight:600; color:var(--text-strong); white-space:nowrap;">{{ s.left }}</span>
+              </div>
+            </sc-for>
+          </div>
+          </div>
+          <div class="b-card" style="padding:22px 24px; display:flex; flex-direction:column;">
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Distribuição do orçamento</div>
+            <div style="display:flex; align-items:center; gap:18px; flex:1;">
+              <div style="flex:1; height:228px; position:relative;"><canvas id="seg-budget"></canvas></div>
+              <div id="seg-budget-lg" style="display:flex; flex-direction:column; gap:6px; width:46%; flex-shrink:0;"></div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ showAds }}" hint-placeholder-val="{{ true }}">
+        <div id="inv-ads-card" class="b-card" style="padding:22px 24px; min-width:0; margin-bottom:16px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15;">Anúncios</div>
+            <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ adsStatus }}</span>
+          </div>
+          <div style="overflow-x:auto; margin:0 -4px;">
+            <table style="border-collapse:collapse; width:100%; min-width:660px;">
+              <thead>
+                <tr style="text-align:right;">
+                  <th onClick="{{ hAd.name }}" style="text-align:left; padding:0 12px 10px 4px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Anúncio{{ arAd.name }}</th>
+                  <th onClick="{{ hAd.impr }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Impressões{{ arAd.impr }}</th>
+                  <th onClick="{{ hAd.ctr }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">CTR{{ arAd.ctr }}</th>
+                  <th onClick="{{ hAd.c2 }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ colA2 }}{{ arAd.c2 }}</th>
+                  <th onClick="{{ hAd.c3 }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ colA3 }}{{ arAd.c3 }}</th>
+                  <th onClick="{{ hAd.c4 }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ colA4 }}{{ arAd.c4 }}</th>
+                  <th onClick="{{ hAd.c5 }}" style="text-align:right; padding:0 4px 10px 12px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">{{ colA5 }}{{ arAd.c5 }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ investAds }}" as="a" hint-placeholder-count="5">
+                  <tr style="border-top:1px solid var(--border-soft);">
+                    <td style="padding:10px 12px 10px 4px;">
+                      <sc-if value="{{ a.hasLink }}" hint-placeholder-val="{{ true }}">
+                      <a href="{{ a.perma }}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" title="Abrir criativo no Instagram" style="display:flex; align-items:center; gap:10px; min-width:0; text-decoration:none; color:inherit; cursor:pointer;">
+                        <div style="{{ a.thumbStyle }}"></div>
+                        <span style="font-size:12.5px; font-weight:500; color:var(--text-strong); white-space:nowrap; border-bottom:1px solid var(--border-strong, rgba(23,34,25,0.25));">{{ a.name }}</span>
+                      </a>
+                      </sc-if>
+                      <sc-if value="{{ a.noLink }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                        <div style="{{ a.thumbStyle }}"></div>
+                        <span style="font-size:12.5px; font-weight:500; color:var(--text-strong); white-space:nowrap;">{{ a.name }}</span>
+                      </div>
+                      </sc-if>
+                    </td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.impr }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.ctr }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.clk }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.lpv }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.cr }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 4px 10px 12px; font-size:13px; font-weight:600; color:#172219; white-space:nowrap;">{{ a.leads }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ segMode }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card" style="padding:22px 24px; min-width:0; margin-bottom:16px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">{{ investEyebrow }}</div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15;">Anúncios de perfil</div>
+            <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ adsStatus }}</span>
+          </div>
+          <div style="overflow-x:auto; margin:0 -4px;">
+            <table style="border-collapse:collapse; width:100%; min-width:720px;">
+              <thead>
+                <tr style="text-align:right;">
+                  <th onClick="{{ hPub.name }}" style="text-align:left; padding:0 12px 10px 4px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Anúncio{{ arPub.name }}</th>
+                  <th onClick="{{ hPub.spend }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Gasto{{ arPub.spend }}</th>
+                  <th onClick="{{ hPub.reach }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Alcance{{ arPub.reach }}</th>
+                  <th onClick="{{ hPub.impr }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Impressões{{ arPub.impr }}</th>
+                  <th onClick="{{ hPub.visits }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Visitas ao perfil{{ arPub.visits }}</th>
+                  <th onClick="{{ hPub.conv }}" style="padding:0 12px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">CTR{{ arPub.conv }}</th>
+                  <th onClick="{{ hPub.cost }}" style="text-align:right; padding:0 4px 10px 12px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:600; white-space:nowrap; cursor:pointer; user-select:none;">Custo / visita{{ arPub.cost }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ investPubs }}" as="a" hint-placeholder-count="5">
+                  <tr style="border-top:1px solid var(--border-soft);">
+                    <td style="padding:10px 12px 10px 4px;"><span style="font-size:12.5px; font-weight:500; color:var(--text-strong); white-space:nowrap;">{{ a.name }}</span></td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.spend }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.reach }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.impr }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.visits }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 12px; font-size:13px; color:var(--text-strong); white-space:nowrap;">{{ a.conv }}</td>
+                    <td data-keepcase="1" style="text-align:right; padding:10px 4px 10px 12px; font-size:13px; font-weight:600; color:#172219; white-space:nowrap;">{{ a.cost }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        </sc-if>
+
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ candLoadingView }}" hint-placeholder-val="{{ true }}">
+        <div class="b-card b-card--bare" style="text-align:center; padding:60px; color:var(--text-muted);">{{ candStatusLabel }}</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.model = this.buildModel();
+    this.charts = {};
+    this.state = {
+      page: 'conta',
+      month: 'all',
+      week: this.model.DEFAULT_WEEK.iso,
+      metric2: 'views',
+      topMetric: 'views',
+      refreshing: false,
+      lastSync: this.model.lastSync,
+      lastSyncYMD: this.model.maxDate,
+      live: false,
+      dataError: '',
+      mediaLoading: false,
+      dormant: false,
+      campaign: 'vendas',
+      product: 'sdm',
+      campFilter: 'all',
+      adSort: {key:'impr', dir:-1},
+      adsetSort: {key:'impr', dir:-1},
+      pubSort: {key:'spend', dir:-1},
+      candMonth: 'all',
+      candFrom: '',
+      candTo: '',
+      salesUtmFilter: 'all',
+      demo: null,
+      ads: null,
+      adsLoading: false,
+      adsError: '',
+      sales: {},
+      salesLoading: false,
+      salesError: '',
+      seg: {},
+    };
+    this.ADS_ACCOUNT_ID = '504057149034541';
+    // Buckets por objetivo/produto. Produto = primeiro [] do nome da campanha.
+    // Vendas: SDM/SFC/TDD (OUTCOME_SALES). Leads: [SFC][CAP] (OUTCOME_LEADS).
+    // Perfil/Visitas: nome com perfil/visita ou tráfego de perfil (LINK_CLICKS).
+    this.ADS_CAMPAIGN_MATCH = {
+      sdm:    /^\s*\[SDM\]/i,
+      sfc:    /^\s*\[SFC\]\s*\[VENDA\]/i,
+      tdd:    /^\s*\[TDD\]/i,
+      leads:  /^\s*\[SFC\]\s*\[CAP\]/i,
+      perfil: /tr[aá]fego para perfil|\[VISITA\]|aumento de base/i,
+    };
+    // Como cada bucket se comporta no funil de investimento.
+    this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', perfil:'profile' };
+    this.ADS_CKEY = 'akAdsCampaigns:v3';
+    this.ADS_SEED_FROM = '2025-01-01';
+    this.HAS_SALES_SHEET = false; // AK não tem planilha Eduzz — abas de venda mostram só o funil de anúncios
+    this.SALES_SHEETS = {};
+    this.SALES_PROD_TAB = {};
+    this.SALES_CKEY = 'akSales:v1';
+    // Abas da página "Dados das Campanhas": vendas por produto + Leads + Perfil/Visitas.
+    this.CAMPAIGNS = [
+      { key:'vendas', name:'Vendas' },
+      { key:'leads', name:'Leads' },
+      { key:'perfil', name:'Novos Seguidores' },
+    ];
+    // Sub-filtro "Produtos" dentro da aba Vendas (SDM / SFC / TDD).
+    this.PRODUCTS = [
+      { key:'sdm', name:'SDM' },
+      { key:'sfc', name:'SFC' },
+      { key:'tdd', name:'TDD' },
+    ];
+    // Novos Seguidores — turbinamento Instagram (extrações DIÁRIAS .xlsx no Drive, lidas ao vivo via gviz).
+    // Cada linha = um dia (coluna "Day") × uma publicação turbinada; os dados são agregados por dia, então o
+    // filtro de datas recorta no nível diário. Para um mês novo basta somar o ID do arquivo aqui.
+    this.SEG_SHEETS = [
+      '1O6RbLxS8nZAUSM6CilDnFG6HwVkwKmqF', // fev/2026 (diário)
+      '17gt_tb7tXcMrg_L2LESTVrYS8vxBnMQt', // mar/2026 (diário)
+      '1uqXzlB1lUvBoa4E_-63GhVQ9y73Xyer6', // abr/2026 (diário)
+      '1xy2DkOuR8_l0toER-TjM69wr1yl7I9o6', // mai/2026 (diário)
+      '1-fknkfQbV5MlBrcQSn-75KY8ciKSXjM-', // jun/2026 (diário)
+    ];
+    this.SEG_CKEY = 'priSeg:v3';
+    // Fallback offline (único caso o Drive falhe na 1ª carga) — os dados ao vivo substituem isto.
+    this.SEGUIDORES = {
+      '2026-02':[
+        ['O ciclo menstrual é um relatório',196.73,65362,67041,153,10],
+        ['Se identificou? Fique de olho',93.77,17855,20031,1292,213],
+      ],
+      '2026-03':[
+        ['Qual sinal te ajudou',159.98,19276,22241,1445,730],
+        ['Se a linfa não anda, o corpo',159.92,14614,17590,1243,663],
+        ['Essa explicação te ajudou',159.90,47655,67380,4043,412],
+        ['Essa mistura mudou o jogo',159.85,14013,16813,1719,810],
+        ['Se identificou? Fique de olho',144.18,33572,40855,2549,404],
+        ['Cansaço, flutuação de humor',77.04,4690,5399,326,163],
+        ['O tecido adiposo impacta',20.15,1240,1338,82,40],
+        ['Se a linfa não anda (2)',12.89,1034,1040,50,19],
+        ['Essa mistura mudou o jogo (2)',12.41,1311,1341,122,50],
+        ['Qual sinal te ajudou (2)',12.35,1476,1552,77,34],
+      ],
+      '2026-04':[
+        ['Essa mistura mudou o jogo',347.49,31026,39788,3911,1693],
+        ['Qual sinal te ajudou',347.43,48245,60678,3115,1362],
+        ['Se a linfa não anda, o corpo',347.01,26785,34020,2126,1026],
+        ['A modulação glicêmica precisa',282.09,16475,19458,1272,440],
+        ['Com qual desses sintomas você',281.97,18388,22048,1090,447],
+        ['Os exames são importantes, mas',118.42,21921,27400,1009,138],
+        ['Tem ouro na legenda',46.34,2757,2942,173,60],
+      ],
+      '2026-05':[
+        ['Com qual desses sintomas você',374.19,16789,19267,1146,425],
+        ['Tem ouro na legenda',344.03,17679,21694,1266,457],
+        ['Qual sinal te ajudou',294.19,30297,35291,2099,1043],
+        ['Essa mistura mudou o jogo',293.02,19067,23737,2311,954],
+        ['O corpo muda e nossa',208.02,17420,21497,960,385],
+        ['Você consegue perceber seu',201.45,20607,23232,1056,384],
+        ['A modulação glicêmica precisa',173.13,10878,11785,825,224],
+        ['Só quem já sofreu com isso',84.11,11675,13934,933,120],
+        ['Este é um desequilíbrio que',81.91,17046,18713,2089,14],
+        ['Só aeróbico: se faz, continue',12.79,1271,1307,85,3],
+      ],
+      '2026-06':[
+        ['Com qual desses sintomas você',388.64,15846,18737,1115,410],
+        ['Essa mistura mudou o jogo',387.78,27881,34154,3045,1275],
+        ['Tem ouro na legenda',387.38,15135,18717,1144,413],
+        ['Qual sinal te ajudou',386.38,43523,49135,2480,1275],
+        ['Essa receita viral de salada',288.50,27391,31149,2146,981],
+        ['Você consegue perceber seu',266.74,36173,39150,2801,351],
+        ['Seu ciclo é o termômetro da',161.59,36581,39055,5387,62],
+        ['Seus sintomas condizem com',108.05,9653,10482,516,65],
+      ],
+    };
+    // degradê do verde da marca (intenso → claro)
+    this.RED_RAMP = ['#172219','#243024','#2C3A2E','#3A4A3C','#465247','#5E6E60','#828F84'];
+    this.PAGE_ACCENTS = { conta:'#172219', conteudos:'#3A4A3C', insights:'#5E6E60' };
+    this.WEEK_COLORS = ['#172219','#5E6E60','#243024','#3A4A3C','#828F84','#2C3A2E','#6E7A70','#465247'];
+    this.COVER_BG = ['#172219','#172219','#172219','#172219','#172219','#172219','#172219','#172219'];
+    // Windsor.ai — conexão ao vivo (chave do cliente; visível no fonte do arquivo)
+    this.WINDSOR_KEY = 'cc5920b6dff9cc53e32402809e467b617f83';
+    this.HANDLE = 'akstylist.academy';
+    this.BRAND_NAME = 'AK Stylist';
+    this.postMetrics = true; // snapshot has full per-post metrics; live feed sets false
+    this.TEMPLATE_MODE = false; // ao vivo (Windsor / Facebook). true = dados de exemplo (loadExampleData).
+                               // Desligue (false) para reconectar às APIs ao vivo. Todas as referências de
+                               // campos e conectores (Windsor / Facebook / Google Sheets) seguem preservadas acima.
+    if(!this.TEMPLATE_MODE) this.pruneCaches();
+  }
+
+  // Remove versões antigas de cache (liberam quota p/ a versão atual e a conta atual)
+  pruneCaches(){
+    try{
+      const H=(this.HANDLE||'').toLowerCase();
+      for(let i=localStorage.length-1;i>=0;i--){
+        const k=localStorage.key(i); if(!k) continue;
+        if(/^(pri|ak)Sales:v\d+$/.test(k) && k!==this.SALES_CKEY) localStorage.removeItem(k);
+        else if(/^(pri|ak)AdsCampaigns:v\d+$/.test(k) && k!==this.ADS_CKEY) localStorage.removeItem(k);
+        else if(/^(pri|ak)Seg:v\d+$/.test(k) && k!==this.SEG_CKEY) localStorage.removeItem(k);
+        else if(k.indexOf('dbi_posts_cache_')===0 && k!=='dbi_posts_cache_'+H) localStorage.removeItem(k);
+        else if(k.indexOf('igdemo_')===0 && k!=='igdemo_'+H) localStorage.removeItem(k);
+      }
+    }catch(e){}
+  }
+
+  /* ==== DADOS DE EXEMPLO (modo template) ==== */
+  // Preenche adRows / sales / seg / demo com dados sinteticos deterministicos, sem tocar em
+  // nenhuma API. Mesmo formato que os fetch* produziriam ao vivo. Desligue TEMPLATE_MODE p/ reconectar.
+  loadExampleData(){
+    const rnd=this.rng(20260706);
+    const ri=(a,b)=>Math.round(a+(b-a)*rnd());
+    const rf=(a,b)=>a+(b-a)*rnd();
+    const pick=(a)=>a[Math.floor(rnd()*a.length)];
+    const pad=(n)=>String(n).padStart(2,'0');
+    const daysIn=(ym)=>{ const y=+ym.slice(0,4), m=+ym.slice(5,7); return new Date(Date.UTC(y,m,0)).getUTCDate(); };
+    const months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+
+    // Facebook Ads (exemplo) -> adRows no mesmo formato do conector
+    const adNames={
+      essencia:['Anuncio 01 - Video','Anuncio 02 - Imagem','Anuncio 03 - Carrossel','Anuncio 04 - Video','Anuncio 05 - Imagem'],
+      engajamento:['Engaj. 01 - Reels','Engaj. 02 - Bastidores','Engaj. 03 - Depoimento','Engaj. 04 - Reels'] };
+    const adsetNames={
+      essencia:['Conjunto A - Interesses','Conjunto B - Lookalike 1%','Conjunto C - Retargeting'],
+      engajamento:['Conjunto A - Amplo','Conjunto B - Engajadores'] };
+    const adRows=[];
+    ['essencia','engajamento'].forEach(prod=>{
+      months.forEach(ym=>{
+        const nAds=prod==='essencia'?5:4;
+        for(let i=0;i<nAds;i++){
+          const d=ym+'-'+pad(ri(2, daysIn(ym)-1));
+          const impr=ri(6000,52000);
+          const clk=Math.round(impr*rf(0.006,0.02));
+          const lpv=Math.round(clk*rf(0.55,0.85));
+          const eng=Math.round(impr*rf(0.02,0.06));
+          adRows.push({ c:prod, d, ad:adNames[prod][i%adNames[prod].length], adset:pick(adsetNames[prod]),
+            thumb:'', perma:'',
+            impr, reach:Math.round(impr/rf(1.15,1.9)), clk, lpv,
+            leads: prod==='essencia'? Math.round(lpv*rf(0.03,0.09)) : 0,
+            spend:Math.round(rf(60,520)*100)/100,
+            eng, vv:Math.round(impr*rf(0.20,0.55)), reac:Math.round(eng*rf(0.4,0.7)),
+            save:Math.round(eng*rf(0.05,0.15)), shr:Math.round(eng*rf(0.05,0.12)) });
+        }
+      });
+    });
+
+    // Vendas Eduzz (exemplo) -> sales[ym] no mesmo formato de aggregateSales
+    const utmSources=['instagram','bio-instagram','direct','email','whatsapp','google'];
+    const utmCamps=['sempre-ativo','lancamento','remarketing'];
+    const utmConts=['reel-01','carrossel-02','story-03','feed-04'];
+    const cupons=['','','','','DESCONTO10','PRIMEIRACOMPRA'];
+    const sales={}; let fnum=100000;
+    months.forEach(ym=>{
+      const arr=[]; const n=ri(14,38);
+      for(let i=0;i<n;i++){
+        const date=ym+'-'+pad(ri(1, daysIn(ym)));
+        const roll=rnd();
+        const status= roll<0.82?'Paga' : (roll<0.90?'Reembolsado':'Aguardando pagamento');
+        const price=pick([197,297,397,497]);
+        let net=Math.round(price*rf(0.86,0.93)*100)/100; if(status==='Reembolsado') net=-net;
+        arr.push({ fatura:'F'+(fnum++), status, date, item:price, net, tab:'essencia',
+          utm:pick(utmSources), cupom:pick(cupons), oferta:'Oferta padrao',
+          utmCamp:pick(utmCamps), utmCont:pick(utmConts) });
+      }
+      sales[ym]=arr;
+    });
+
+    // Novos Seguidores (exemplo, diario) -> seg['YYYY-MM-DD']=[[name,spend,reach,impr,visits,follows]]
+    const pubNames=['Reel - Bastidores do atelie','Reel - Processo de costura','Carrossel - Nova colecao','Reel - Detalhe em bronze','Post - Edicao limitada','Reel - Um domingo lento'];
+    const seg={};
+    ['2026-05','2026-06'].forEach(ym=>{
+      const dmax = ym==='2026-06'?21:daysIn(ym);
+      for(let dd=1; dd<=dmax; dd++){
+        if(rnd()<0.45) continue;
+        const rows=[]; const k=ri(1,3);
+        for(let j=0;j<k;j++){
+          const reach=ri(3000,42000);
+          const impr=Math.round(reach*rf(1.05,1.4));
+          const visits=Math.round(impr*rf(0.03,0.10));
+          rows.push([pick(pubNames), Math.round(rf(30,220)*100)/100, reach, impr, visits, Math.round(visits*rf(0.15,0.5))]);
+        }
+        seg[ym+'-'+pad(dd)]=rows;
+      }
+    });
+
+    // Demografia da audiencia (exemplo)
+    const demo={
+      age:{'13-17':ri(400,900),'18-24':ri(9000,15000),'25-34':ri(28000,42000),'35-44':ri(20000,32000),'45-54':ri(9000,16000),'55-64':ri(3000,7000),'65+':ri(800,2200)},
+      gender:{F:ri(150000,190000), M:ri(40000,70000), U:ri(1000,4000)},
+      city:{'Sao Paulo, Brasil':ri(30000,52000),'Rio de Janeiro, Brasil':ri(14000,24000),'Belo Horizonte, Brasil':ri(7000,13000),'Curitiba, Brasil':ri(5000,10000),'Porto Alegre, Brasil':ri(4000,9000),'Brasilia, Brasil':ri(4000,8500),'Salvador, Brasil':ri(3000,7000),'Fortaleza, Brasil':ri(2500,6000)} };
+
+    this.setState({ refreshing:false, live:false, mediaLoading:false, dormant:false, dataError:'',
+      adRows, ads:null, adsets:null, adsLoading:false, adsError:'',
+      sales, salesLoading:false, salesError:'',
+      seg, demo, lastSync:this.model.lastSync });
+  }
+
+  /* ============ DATA GENERATION ============ */
+  rng(seed){ let a = seed>>>0; return function(){ a = (a + 0x6D2B79F5)|0; let t = Math.imul(a ^ (a>>>15), 1|a); t = (t + Math.imul(t ^ (t>>>7), 61|t)) ^ t; return ((t ^ (t>>>14))>>>0)/4294967296; }; }
+  ymd(d){ return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+  parse(s){ const p=s.split('-').map(Number); return new Date(Date.UTC(p[0],p[1]-1,p[2])); }
+  addDays(s,n){ const d=this.parse(s); d.setUTCDate(d.getUTCDate()+n); return this.ymd(d); }
+  isoWeek(s){ const d=this.parse(s); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day+3); const ft=new Date(Date.UTC(d.getUTCFullYear(),0,4)); const w=1+Math.round(((d-ft)/86400000 - 3 + ((ft.getUTCDay()+6)%7))/7); return {year:d.getUTCFullYear(), week:w}; }
+  monday(s){ const d=this.parse(s); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); return this.ymd(d); }
+  ddmm(s){ const p=s.split('-'); return p[2]+'/'+p[1]; }
+
+  genRaw(){
+    const rnd = this.rng(20260621);
+    const start='2026-05-04', end='2026-06-21';
+    const days=[]; let cur=start; while(cur<=end){ days.push(cur); cur=this.addDays(cur,1); }
+    const N=days.length;
+    const daily=[], follows=[];
+    days.forEach((date,i)=>{
+      const dow=(this.parse(date).getUTCDay()+6)%7; // Mon0
+      const wkMult = dow>=5 ? 0.86 : 1.0;
+      const reach = Math.round((8200 + i*70) * wkMult * (0.82 + 0.34*rnd()));
+      const views = Math.round(reach * (1.5 + 0.8*rnd()));
+      const interactions = Math.round(reach * (0.042 + 0.030*rnd()));
+      const likes = Math.round(interactions*(0.60 + 0.06*rnd()));
+      const comments = Math.round(interactions*(0.06 + 0.03*rnd()));
+      const shares = Math.round(interactions*(0.11 + 0.06*rnd()));
+      let saves = interactions - likes - comments - shares; if(saves<0) saves=Math.round(interactions*0.1);
+      const apuracao = i >= N-2; // last 2 days em apuração
+      const taps = apuracao ? null : Math.round(reach*(0.007 + 0.006*rnd()));
+      const net = apuracao ? null : Math.round(-12 + 150*rnd()*rnd());
+      daily.push({date, views, reach, interactions, taps, shares, likes, comments, saves});
+      follows.push({date, net});
+    });
+
+    // media posts
+    const caps = [
+      'Couro curtido em Minas, dobrado à mão','Bastidores do atelier nesta manhã','Nova coleção Voyage — primeiras peças',
+      'O tempo que cada peça precisa','Processo de costura, ponto a ponto','Café & conversa sobre ofício',
+      'Detalhe da fivela em bronze escovado','Da prancha de corte à peça final','Edição limitada — apenas 12 unidades',
+      'Como cuidamos do couro vegetal','Pequenas marcas que contam história','Encomenda especial entregue hoje',
+      'Voltamos com o tom terroso de sempre','Teste de textura para a próxima linha','Um domingo lento no ateliê','Pespontos que levam horas'];
+    const types=['REELS','REELS','CAROUSEL_ALBUM','IMAGE','REELS','CAROUSEL_ALBUM','REELS','IMAGE','CAROUSEL_ALBUM','REELS','REELS','IMAGE','CAROUSEL_ALBUM','REELS','REELS','IMAGE'];
+    const media=[]; const mr=this.rng(77731);
+    const offsets=[1,3,5]; let k=0;
+    for(let wStart=0; wStart<N; wStart+=7){
+      for(let j=0;j<offsets.length;j++){
+        const di = wStart + offsets[j]; if(di>=N) break;
+        const date = days[di];
+        const type = types[k%types.length];
+        const isTest = (k===4 || k===13);
+      let reach;
+      if(isTest) reach = 120 + Math.round(mr()*340);
+      else if(type==='REELS') reach = 6000 + Math.round(mr()*34000);
+      else reach = 3200 + Math.round(mr()*14000);
+      const viewMult = type==='REELS' ? (1.6+mr()*1.4) : (1.02+mr()*0.18);
+      const views = Math.round(reach*viewMult);
+      const baseEng = reach*(0.05 + 0.05*mr());
+      const likes = Math.round(baseEng*(0.62+0.06*mr()));
+      const comments = Math.round(baseEng*(0.05+0.04*mr()));
+      const shares = Math.round(baseEng*(0.10+0.08*mr()));
+      const saves = Math.round(baseEng*(0.12+0.10*mr()));
+      const eng = likes+comments+shares+saves;
+        media.push({ id:'p'+k, ts:date, type, likes, comments, shares, saves, views, reach, eng, caption:caps[k%caps.length], coverIdx:k });
+        k++;
+      }
+    }
+
+    return {
+      profile:{ name:'Pri Riciardi', handle:'priscilariciardi', initial:'P', followers:247307 },
+      daily, follows, media,
+    };
+  }
+
+  /* ============ MODEL ============ */
+  buildModel(raw){
+    raw = raw || this.genRaw();
+    const daily = raw.daily, follows = raw.follows, media = raw.media;
+    const dDates = daily.map(d=>d.date);
+    // Periods span daily + media dates so the week/month filters cover every post,
+    // even posts older than the (lighter) daily series window.
+    const allDates = dDates.concat(media.map(p=>p.ts).filter(Boolean)).slice().sort();
+    const minDate = allDates[0] || dDates[0];
+    const maxDate = allDates[allDates.length-1] || dDates[dDates.length-1];
+    const dailyMax = dDates[dDates.length-1] || maxDate;
+
+    // weeks
+    const weeks=[]; let m=this.monday(minDate);
+    while(m<=maxDate){ const iw=this.isoWeek(m); const endW=this.addDays(m,6);
+      weeks.push({ iso:iw.year+'-W'+String(iw.week).padStart(2,'0'), week:iw.week, year:iw.year, start:m, end:endW,
+        label:iw.week+' · '+this.ddmm(m)+'–'+this.ddmm(endW) });
+      m=this.addDays(m,7);
+    }
+    const DEFAULT_WEEK = weeks.find(w=> dailyMax>=w.start && dailyMax<=w.end) || weeks[weeks.length-1];
+
+    // months
+    const monthSet=[]; allDates.forEach(d=>{ const ym=d.slice(0,7); if(!monthSet.includes(ym)) monthSet.push(ym); }); monthSet.sort();
+    const MONTH_NAMES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const months = monthSet.map(ym=>({ value:ym, label: MONTH_NAMES[Number(ym.slice(5,7))-1]+' '+ym.slice(0,4) }));
+
+    // follower timeline (reconstruct backward)
+    const followers = raw.profile.followers;
+    const tl = daily.map(r=>({date:r.date, value:0}));
+    tl[tl.length-1].value = followers;
+    for(let i=tl.length-2;i>=0;i--){ const net = follows[i+1].net||0; tl[i].value = tl[i+1].value - net; }
+
+    // post counts per week
+    const postCounts={}; weeks.forEach(w=>{ postCounts[w.iso]=0; });
+    media.forEach(p=>{ const w=weeks.find(w=> p.ts>=w.start && p.ts<=w.end); if(w) postCounts[w.iso]++; });
+
+    const md=this.parse(dailyMax);
+    const fmtSync = md.getUTCDate()+' '+MONTH_NAMES[md.getUTCMonth()]+' '+md.getUTCFullYear()+' · 14:30';
+    return { raw, profile:raw.profile, daily, follows, media, timeline:tl, weeks, months, DEFAULT_WEEK, postCounts, minDate, maxDate, followers, lastSync:fmtSync };
+  }
+
+  /* ============ WINDOW + AGG ============ */
+  windowOf(){
+    const M=this.model;
+    if(this.state.week!=='all'){
+      const w=M.weeks.find(x=>x.iso===this.state.week)||M.DEFAULT_WEEK;
+      const idx=M.weeks.indexOf(w); const prev= idx>0? M.weeks[idx-1]:null;
+      return { start:w.start, end:w.end, kind:'week', label:w.label, prev: prev?{start:prev.start,end:prev.end}:null };
+    }
+    if(this.state.month!=='all'){
+      const ym=this.state.month; const inMonth=M.daily.filter(r=>r.date.slice(0,7)===ym).map(r=>r.date);
+      const start=inMonth[0], end=inMonth[inMonth.length-1];
+      const mi=M.months.findIndex(x=>x.value===ym); const pm= mi>0? M.months[mi-1]:null;
+      let prev=null; if(pm){ const pin=M.daily.filter(r=>r.date.slice(0,7)===pm.value).map(r=>r.date); prev={start:pin[0], end:pin[pin.length-1]}; }
+      const lbl=M.months.find(x=>x.value===ym).label;
+      return { start, end, kind:'month', label:lbl, prev };
+    }
+    return { start:M.minDate, end:M.maxDate, kind:'all', label:'todo o período', prev:null };
+  }
+  agg(start,end){
+    const rows=this.model.daily.filter(r=>r.date>=start && r.date<=end);
+    const s={views:0,reach:0,interactions:0,taps:0,shares:0,likes:0,comments:0,saves:0};
+    rows.forEach(r=>{ s.views+=r.views; s.reach+=r.reach; s.interactions+=r.interactions; if(r.taps!=null) s.taps+=r.taps; s.shares+=r.shares; s.likes+=r.likes; s.comments+=r.comments; s.saves+=r.saves; });
+    s.postCount=this.model.media.filter(p=>p.ts>=start && p.ts<=end).length;
+    return s;
+  }
+  tlAt(date){ let v=null; this.model.timeline.forEach(t=>{ if(t.date<=date) v=t.value; }); return v; }
+  weeksInWindow(win){ return this.model.weeks.filter(w=> w.start<=win.end && w.end>=win.start); }
+  dailyAt(date){ return this.model.daily.find(r=>r.date===date)||null; }
+
+  /* ============ FORMAT ============ */
+  fmtNum(n){ if(n==null||isNaN(n)) return '—'; return new Intl.NumberFormat('pt-BR').format(Math.round(n)); }
+  fmtPct(n){ if(n==null||isNaN(n)||!isFinite(n)) return '—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
+  delta(cur,prev){ if(prev==null||prev===0) return {text:'—', color:'var(--ink-300)', sub:''}; const v=(cur-prev)/prev*100; const up=v>=0; return { text:(up?'▲ ':'▼ ')+this.fmtPct(Math.abs(v)), color: up?'var(--success)':'var(--danger)', sub:'' }; }
+
+  /* ============ HANDLERS ============ */
+  setPage(p){ this.setState({page:p}); }
+  onRefresh(){ if(this.TEMPLATE_MODE){ this.setState({refreshing:true, lastSync:this.nowStamp()}); setTimeout(()=>{ this.loadExampleData(); }, 350); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(true); }
+  nowStamp(){ const now=new Date(); const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; return now.getDate()+' '+MN[now.getMonth()]+' '+now.getFullYear()+' · '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'); }
+  nowYMD(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
+  async fetchLive(){
+    if(this.state.refreshing) return;
+    this.setState({refreshing:true, dataError:'', mediaLoading:false});
+    const key=this.WINDSOR_KEY, H=this.HANDLE.toLowerCase();
+    const to=new Date();
+    const fd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
+    const getF=async(fields, days)=>{ const f0=fd(new Date(to.getTime()-days*86400000)); const u='https://connectors.windsor.ai/instagram?api_key='+encodeURIComponent(key)+'&date_from='+f0+'&date_to='+fd(to)+'&fields='+encodeURIComponent(fields)+'&_cb='+Date.now(); const r=await fetch(u, {cache:'no-store'}); if(!r.ok) throw new Error('Windsor HTTP '+r.status); const j=await r.json(); const arr=(j&&j.data)?j.data:(Array.isArray(j)?j:[]); return arr.filter(x=>String(x.username||'').toLowerCase()===H); };
+    const num=(v)=> (v==null||v==='')?0:(+v||0);
+    const isDate=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
+    try{
+      // ── Phase 1: account + daily (fast) → Conta page goes live quickly ──
+      const [profR,dRows,fRows]=await Promise.all([
+        getF('followers_count,name,username,media_count', 7),
+        getF('date,views,reach,total_interactions,shares,likes,comments,saves,profile_links_taps,username', 60),
+        getF('date,follows_and_unfollows,username', 60),
+      ]);
+      const daily=dRows.map(r=>({ date:String(r.date).slice(0,10), views:num(r.views), reach:num(r.reach), interactions:num(r.total_interactions), taps:(r.profile_links_taps==null?null:num(r.profile_links_taps)), shares:num(r.shares), likes:num(r.likes), comments:num(r.comments), saves:num(r.saves) }))
+        .filter(r=>isDate(r.date)).sort((a,b)=> a.date<b.date?-1:1);
+      if(daily.length<2) throw new Error('Sem série diária suficiente para @'+H+' nesse período.');
+      const fmap={}; fRows.forEach(r=>{ const d=String(r.date).slice(0,10); if(isDate(d)) fmap[d]=(r.follows_and_unfollows==null?null:num(r.follows_and_unfollows)); });
+      const follows=daily.map(d=>({ date:d.date, net:(d.date in fmap)?fmap[d.date]:0 }));
+      const prof=profR[0]||{}; let nm=String(prof.name||('@'+H)).trim();
+      nm = this.BRAND_NAME || nm.split('|')[0].split('—')[0].trim() || ('@'+H); // nome de marca fixo
+      const profile={ name:nm, handle:H, initial:(nm.replace(/[^A-Za-zÀ-ú]/g,'').slice(0,2)||'AK').toUpperCase(), followers:num(prof.followers_count) };
+      this.postMetrics = true;
+      const actSum = daily.reduce((a,d)=>a+d.reach+d.views+d.interactions,0);
+      this._live = { profile, daily, follows, actSum };
+      this.model=this.buildModel({ profile, daily, follows, media:[] });
+      this.setState({ live:true, dataError:'', lastSync:this.nowStamp(), lastSyncYMD:this.nowYMD(), month:'all', week:this.model.DEFAULT_WEEK.iso, mediaLoading:true, dormant:false });
+
+      // ── Phase 2: per-post insights — só os últimos 30 dias são buscados; o
+      //    histórico anterior fica estático em cache (localStorage). ──
+      try{
+        const CKEY='dbi_posts_cache_'+H;
+        // cache existente (histórico já salvo)
+        let cached=[]; let seeded=false;
+        try{ const raw=localStorage.getItem(CKEY); if(raw){ const o=JSON.parse(raw); if(o&&Array.isArray(o.posts)){ cached=o.posts; seeded=o.posts.length>0; } } }catch(_){}
+        // 1ª vez (sem cache): semeia todo o histórico de 2026 (garante capa p/ cada conteúdo);
+        // depois só os últimos 30 dias, mesclando com o cache.
+        const daysToStart2026 = Math.ceil((to.getTime() - Date.UTC(2026,0,1)) / 86400000) + 3;
+        const win = seeded ? 30 : Math.max(200, daysToStart2026);
+        const mRows=await getF('media_id,timestamp,media_type,media_product_type,media_caption,media_like_count,media_comments_count,media_reach,media_saved,media_shares,media_views,media_url,media_thumbnail_url,username', win);
+        const fresh=mRows.map((r,i)=>{ const likes=num(r.media_like_count),comments=num(r.media_comments_count),shares=num(r.media_shares),saves=num(r.media_saved); const reach=num(r.media_reach), views=num(r.media_views); const eng=num(r.media_engagement)||(likes+comments+shares+saves); const type=(r.media_product_type==='REELS')?'REELS':(r.media_type||'IMAGE'); return { id:r.media_id||null, ts:String(r.timestamp||'').slice(0,10), type, likes,comments,shares,saves, views, reach, eng, caption:String(r.media_caption||'Sem legenda').replace(/\s+/g,' ').trim().slice(0,140), coverIdx:i, cover:String(r.media_thumbnail_url||r.media_url||''), thumb:String(r.media_thumbnail_url||r.media_url||'') }; })
+          .filter(p=>isDate(p.ts) && p.id);
+        // corte de 30 dias: cache fornece tudo anterior, fetch fornece os últimos 30 dias
+        const cutoff = fd(new Date(to.getTime()-30*86400000));
+        const byId={};
+        cached.filter(p=>p && p.id && String(p.ts) < cutoff).forEach(p=>{ byId[p.id]=p; });
+        // capas já embutidas (data URL) — carrega do cache para não rebaixar de novo
+        const cdById={}; cached.forEach(p=>{ if(p && p.id && p.coverData) cdById[p.id]=p.coverData; });
+        fresh.forEach(p=>{ if(cdById[p.id]) p.coverData=cdById[p.id]; byId[p.id]=p; });
+        const media = Object.values(byId).filter(p=>isDate(p.ts) && p.id).sort((a,b)=> a.ts<b.ts?-1:1);
+        // persiste tudo até hoje, para a próxima atualização puxar só 30 dias
+        this.saveCache(CKEY, media, fd(to));
+        this.model=this.buildModel({ profile:this._live.profile, daily:this._live.daily, follows:this._live.follows, media });
+        const dormant = (this._live.actSum||0) < 50 && media.length===0;
+        this.setState({ refreshing:false, mediaLoading:false, dormant });
+        // baixa e embute as capas (desde jan/2026) para guardá-las de forma durável
+        this.persistCovers(media, CKEY, fd(to));
+      }catch(e2){ this.setState({ refreshing:false, mediaLoading:false, dataError:'Publicações: '+((e2&&e2.message)||'falha ao carregar') }); }
+    }catch(e){ this.setState({ refreshing:false, mediaLoading:false, dataError:(e&&e.message)||'Falha ao buscar dados ao vivo.' }); }
+  }
+
+  /* ============ CAPAS DURÁVEIS (data URL no cache) ============ */
+  // demografia lifetime (idade/gênero/cidade) — cache 7 dias
+  async fetchDemographics(force){
+    const KEY=this.WINDSOR_KEY, H=(this.HANDLE||'priscilariciardi');
+    const CK='igdemo_'+H;
+    try{ const c=JSON.parse(localStorage.getItem(CK)||'null'); if(!force && c && c.savedAt && (Date.now()-c.savedAt)<7*864e5 && c.demo){ this.setState({demo:c.demo}); return; } }catch(e){}
+    const fd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
+    const to=new Date(), from=new Date(to.getTime()-30*864e5);
+    const q=async(fields)=>{ const u='https://connectors.windsor.ai/instagram?api_key='+encodeURIComponent(KEY)+'&date_from='+fd(from)+'&date_to='+fd(to)+'&fields='+encodeURIComponent('username,'+fields)+'&_cb='+Date.now(); const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP'+r.status); const j=await r.json(); const arr=(j&&j.data)?j.data:[]; return arr.filter(x=>String(x.username||'').toLowerCase()===H); };
+    const dedup=(rows,k,v)=>{ const m={}; rows.forEach(r=>{ if(r[k]!=null && r[k]!=='') m[r[k]]=Math.max(m[r[k]]||0, +r[v]||0); }); return m; };
+    try{
+      const [age,gender,city]=await Promise.all([
+        q('audience_age_name,audience_age_size'),
+        q('audience_gender_name,audience_gender_size'),
+        q('city,audience_city_size'),
+      ]);
+      const demo={ age:dedup(age,'audience_age_name','audience_age_size'), gender:dedup(gender,'audience_gender_name','audience_gender_size'), city:dedup(city,'city','audience_city_size') };
+      if(Object.keys(demo.age).length || Object.keys(demo.gender).length || Object.keys(demo.city).length){
+        try{ localStorage.setItem(CK, JSON.stringify({demo, savedAt:Date.now()})); }catch(e){}
+        this.setState({demo});
+      }
+    }catch(e){ /* silencioso — gráficos ficam vazios */ }
+  }
+
+  // grava o cache; se estourar a cota, regrava sem as capas embutidas
+  saveCache(CKEY, media, savedAt){
+    try{ localStorage.setItem(CKEY, JSON.stringify({posts:media, savedAt})); return true; }
+    catch(e){
+      try{ localStorage.setItem(CKEY, JSON.stringify({posts:media.map(p=>{ const q={...p}; delete q.coverData; return q; }), savedAt})); }catch(_){}
+      return false;
+    }
+  }
+  // baixa uma imagem e devolve um JPEG reduzido como data URL (ou null)
+  embedCover(url){
+    return new Promise(res=>{
+      if(!url || !/^https?:/.test(url)) return res(null);
+      const img=new Image(); img.crossOrigin='anonymous';
+      let done=false; const finish=(v)=>{ if(!done){ done=true; res(v); } };
+      const to=setTimeout(()=>finish(null), 12000);
+      img.onload=()=>{ clearTimeout(to); try{
+        const max=240; let w=img.naturalWidth||max, h=img.naturalHeight||max;
+        const s=Math.min(1, max/Math.max(w,h)); w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        finish(c.toDataURL('image/jpeg',0.7));
+      }catch(e){ finish(null); } };
+      img.onerror=()=>{ clearTimeout(to); finish(null); };
+      img.src=url;
+    });
+  }
+  // embute, em background, as capas dos posts desde jan/2026 ainda não guardadas
+  async persistCovers(media, CKEY, savedAt){
+    const SINCE='2026-01-01';
+    const targets=media.filter(p=> p && p.ts>=SINCE && !p.coverData && (p.thumb||p.cover));
+    if(!targets.length) return;
+    let i=0; const conc=6;
+    const work=async()=>{ while(i<targets.length){ const p=targets[i++]; const d=await this.embedCover(p.thumb||p.cover); if(d){ p.coverData=d; } } };
+    await Promise.all(Array.from({length:conc}, work));
+    // re-renderiza com as capas embutidas e regrava o cache
+    if(this._live){ this.model=this.buildModel({ profile:this._live.profile, daily:this._live.daily, follows:this._live.follows, media }); this.forceUpdate(); }
+    this.saveCache(CKEY, media, savedAt);
+  }
+
+  /* ============ CHARTS ============ */
+  componentDidMount(){ this.drawCharts(); if(this.TEMPLATE_MODE){ this.loadExampleData(); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(); }
+
+  // Facebook Ads (Windsor) — campanhas por produto (WA/Reset/Ciclo/Essência).
+  // Semeia desde mai/2025 (cache) e depois só re-busca os 3 dias anteriores à atualização.
+  async fetchAds(){
+    if(this.state.adsLoading) return;
+    this.setState({adsLoading:true, adsError:''});
+    try{
+      const key=this.WINDSOR_KEY;
+      const fields='account_id,campaign,adset_name,ad_name,thumbnail_url,instagram_permalink_url,date,impressions,reach,inline_link_clicks,actions_landing_page_view,actions_lead,actions_purchase,actions_initiate_checkout,inline_post_engagement,actions_video_view,actions_post_reaction,actions_onsite_conversion_post_save,actions_post,spend';
+      const num=(v)=>(v==null||v==='')?0:(+v||0);
+      const acct=this.ADS_ACCOUNT_ID;
+      const ymd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
+      const dnorm=(d)=>String(d||'').slice(0,10);
+      const fetchRange=async(from,to)=>{
+        const url='https://connectors.windsor.ai/facebook?api_key='+encodeURIComponent(key)+'&date_from='+from+'&date_to='+to+'&fields='+encodeURIComponent(fields)+'&_cb='+Date.now();
+        const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('Facebook HTTP '+r.status);
+        const j=await r.json(); if(j.error) throw new Error(String(j.error).slice(0,120));
+        return (j.data||[]).filter(x=>String(x.account_id||'').replace(/\D/g,'')===acct);
+      };
+      // uma campanha pode casar com vários baldes (ex.: [ENGAJAMENTO][CICLO-LEVE] entra em ciclo E engajamento)
+      const prodsOf=(camp)=>{ const out=[]; for(const k of Object.keys(this.ADS_CAMPAIGN_MATCH)){ if(this.ADS_CAMPAIGN_MATCH[k].test(camp||'')) out.push(k); } return out; };
+      const ingest=(store, rows)=>{ rows.forEach(x=>{ const ps=prodsOf(x.campaign); if(!ps.length) return;
+        const d=dnorm(x.date), ad=x.ad_name||'(sem nome)';
+        const camp=x.campaign||'';
+        ps.forEach(p=>{ const id=p+'|'+d+'|'+ad+'|'+camp;
+          if(!store[id]) store[id]={ c:p, d, ad, camp, adset:x.adset_name||'(sem conjunto)', thumb:x.thumbnail_url||'', perma:x.instagram_permalink_url||'', impr:0,reach:0,clk:0,lpv:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0,shr:0 };
+          const s=store[id]; s.impr+=num(x.impressions); s.reach+=num(x.reach); s.clk+=num(x.inline_link_clicks); s.lpv+=num(x.actions_landing_page_view); s.leads+=num(x.actions_lead); s.purch+=num(x.actions_purchase); s.chk+=num(x.actions_initiate_checkout); s.spend+=num(x.spend); s.eng+=num(x.inline_post_engagement); s.vv+=num(x.actions_video_view); s.reac+=num(x.actions_post_reaction); s.save+=num(x.actions_onsite_conversion_post_save); s.shr+=num(x.actions_post); if(!s.thumb&&x.thumbnail_url) s.thumb=x.thumbnail_url; if(!s.perma&&x.instagram_permalink_url) s.perma=x.instagram_permalink_url; }); }); };
+      const today=new Date(); const todayStr=ymd(today);
+      let store={}, cached=null;
+      try{ cached=JSON.parse(localStorage.getItem(this.ADS_CKEY)||'null'); }catch(e){}
+      if(cached && cached.rows && cached.through){
+        cached.rows.forEach(s=>{ store[s.c+'|'+s.d+'|'+s.ad+'|'+(s.camp||'')]=s; });
+        const cut=ymd(new Date(today.getTime()-3*86400000));          // 3 dias anteriores
+        Object.keys(store).forEach(id=>{ if(store[id].d>=cut) delete store[id]; });
+        ingest(store, await fetchRange(cut, todayStr));
+      }else{
+        ingest(store, await fetchRange(this.ADS_SEED_FROM, todayStr));        // semente histórica (desde jan/2025)
+      }
+      const rowsArr=Object.values(store);
+      try{ localStorage.setItem(this.ADS_CKEY, JSON.stringify({ through:todayStr, rows:rowsArr })); }catch(e){}
+      // agrega por produto → anúncios e conjuntos
+      const ads={}, adsets={};
+      Object.keys(this.ADS_CAMPAIGN_MATCH).forEach(p=>{ ads[p]={}; adsets[p]={}; });
+      rowsArr.forEach(s=>{ const p=s.c; if(!ads[p]) return;
+        if(!ads[p][s.ad]) ads[p][s.ad]={ name:s.ad, thumb:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,spend:0 };
+        const a=ads[p][s.ad]; a.impressions+=s.impr; a.reach+=s.reach; a.linkClicks+=s.clk; a.lpViews+=s.lpv; a.leads+=s.leads; a.spend+=s.spend; if(!a.thumb&&s.thumb) a.thumb=s.thumb;
+        if(!adsets[p][s.adset]) adsets[p][s.adset]={ name:s.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,spend:0 };
+        const ss=adsets[p][s.adset]; ss.impressions+=s.impr; ss.reach+=s.reach; ss.linkClicks+=s.clk; ss.lpViews+=s.lpv; ss.leads+=s.leads; ss.spend+=s.spend; });
+      const adsOut={}, adsetsOut={};
+      Object.keys(ads).forEach(p=>{ adsOut[p]=Object.values(ads[p]).sort((a,b)=>b.impressions-a.impressions); adsetsOut[p]=Object.values(adsets[p]).sort((a,b)=>b.impressions-a.impressions); });
+      this.setState({adsLoading:false, ads:adsOut, adsets:adsetsOut, adRows:rowsArr});
+    }catch(e){ this.setState({adsLoading:false, adsError:(e&&e.message)||'Falha ao ler Facebook Ads.'}); }
+  }
+
+  /* ============ FILTROS DE DATA ============ */
+  monthBounds(ym, minD, maxD){
+    if(ym && ym!=='all'){ const y=+ym.slice(0,4), m=+ym.slice(5,7); const start=ym+'-01'; const last=new Date(Date.UTC(y,m,0)).getUTCDate(); let end=ym+'-'+String(last).padStart(2,'0'); if(maxD && end>maxD) end=maxD; if(minD && start<minD) return {start:minD, end}; return {start, end}; }
+    return {start:minD||'', end:maxD||''};
+  }
+  parseRowDate(s){ const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; const m2=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); return m2? m2[0]:null; }
+  setCampaign(key){ this.setState({campaign:key, campFilter:'all'}); }
+  setProduct(key){ this.setState({product:key}); }
+  setCampFilter(v){ this.setState({campFilter:v}); }
+  // Opções do filtro de campanhas para um objetivo (leads / perfil): nomes únicos no período.
+  campFilterProps(key){
+    const S=this.state;
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const names=[...new Set((S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && r.camp).map(r=>r.camp))].sort();
+    const cf=S.campFilter||'all';
+    const campOptions=[{value:'all', label:'Todas as campanhas'}].concat(names.map(n=>({value:n, label:n})));
+    return {
+      showCampFilter: names.length>0,
+      campOptions,
+      campFilterValue: (cf!=='all' && names.indexOf(cf)<0) ? 'all' : cf,
+      onCampFilter:(e)=>this.setCampFilter(e.target.value),
+    };
+  }
+  toggleSort(which, key){ this.setState(s=>{ const cur=s[which]||{key:'impr',dir:-1}; const dir= cur.key===key ? -cur.dir : -1; return { [which]: {key, dir} }; }); }
+  pubHeaders(){ const st=this.state.pubSort||{key:'spend',dir:-1};
+    const arrow=(k)=> st.key===k ? (st.dir===-1?' \u2193':' \u2191') : '';
+    const cols=['name','spend','reach','impr','visits','conv','cost']; const hPub={}, arPub={};
+    cols.forEach(k=>{ hPub[k]=()=>this.toggleSort('pubSort',k); arPub[k]=arrow(k); });
+    return { hPub, arPub };
+  }
+  sortPubs(pubs){ const st=this.state.pubSort||{key:'spend',dir:-1};
+    const acc={ name:p=>(p.name||'').toLowerCase(), spend:p=>p.spend||0, reach:p=>p.reach||0, impr:p=>p.impr||0, visits:p=>p.visits||0, conv:p=>p.impr?p.visits/p.impr:0, cost:p=>p.visits?p.spend/p.visits:0 };
+    const f=acc[st.key]||acc.spend; const dir=st.dir||-1;
+    return pubs.slice().sort((x,y)=>{ const vx=f(x),vy=f(y); if(typeof vx==='string') return dir*String(vx).localeCompare(String(vy),'pt'); return dir*(((vx)||0)-((vy)||0)); });
+  }
+
+  /* ============ CSV ============ */
+  parseCSV(txt){
+    const rows=[]; let cur=[],val='',q=false;
+    for(let i=0;i<txt.length;i++){ const c=txt[i];
+      if(q){ if(c==='"'){ if(txt[i+1]==='"'){val+='"';i++;} else q=false; } else val+=c; }
+      else { if(c==='"') q=true; else if(c===','){cur.push(val);val='';} else if(c==='\r'){} else if(c==='\n'){cur.push(val);rows.push(cur);cur=[];val='';} else val+=c; } }
+    if(val.length||cur.length){cur.push(val);rows.push(cur);}
+    return rows;
+  }
+  componentDidUpdate(){ this.drawCharts(); }
+  lineCfg(labels, datasets, opts){
+    opts=opts||{};
+    return {
+      type:'line',
+      data:{ labels, datasets: datasets.map(d=>({ label:d.label, data:d.data, borderColor:d.color, backgroundColor:d.fillColor||d.color, tension:0.35, borderWidth:2.2, pointRadius:d.data.length>14?0:2.5, pointHoverRadius:4, fill: d.fill||false, spanGaps:true })) },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, boxHeight:10, usePointStyle:true, font:{ family:'Neue Montreal', size:11 }, color:'#6B746A' } },
+          tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
+            callbacks: opts.pct? { label:(c)=> c.dataset.label+': '+this.fmtPct(c.parsed.y) } : { label:(c)=> c.dataset.label+': '+this.fmtNum(c.parsed.y) } } },
+        scales:{
+          x:{ grid:{ display:false }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
+          y:{ beginAtZero: !!opts.zero, grid:{ color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', callback: opts.pct? (v)=>this.fmtPct(v) : (v)=> this.fmtNum(v) } }
+        }
+      }
+    };
+  }
+  drawCharts(){
+    if(!window.Chart){ if(!this._cw){ this._cw=setInterval(()=>{ if(window.Chart){ clearInterval(this._cw); this._cw=null; this.drawCharts(); } },120);} return; }
+    if(window.Chart.defaults){ window.Chart.defaults.font.family='Neue Montreal'; }
+    Object.values(this.charts).forEach(c=>{ try{c.destroy();}catch(e){} }); this.charts={};
+    const cfgs = this.state.page==='conta' ? this._chartCfgs : (this.state.page==='candidaturas' ? this._funnelCfgs : null);
+    if(!cfgs) return;
+    Object.keys(cfgs).forEach(id=>{ const el=document.getElementById(id); if(!el) return; this.charts[id]=new window.Chart(el.getContext('2d'), cfgs[id]); });
+  }
+  rampColors(n){ const R=this.RED_RAMP; if(n<=1) return [R[1]]; const out=[]; for(let i=0;i<n;i++){ const t=i/(n-1); out.push(R[Math.round(t*(R.length-1))]); } return out; }
+  wrapLabel(s, max){ s=String(s||''); if(s.length<=max) return s; const words=s.split(' '); const lines=[]; let cur='';
+    words.forEach(w=>{ if((cur+' '+w).trim().length>max){ if(cur) lines.push(cur); cur=w; } else cur=(cur?cur+' ':'')+w; });
+    if(cur) lines.push(cur); return lines.slice(0,3); }
+  htmlLegend(){
+    if(this._htmlLegend) return this._htmlLegend;
+    this._htmlLegend={ id:'htmlLegend',
+      afterUpdate:(chart)=>{ const box=document.getElementById(chart.canvas.id+'-lg'); if(!box) return;
+        box.innerHTML='';
+        const d=chart.data;
+        d.labels.forEach((label,i)=>{
+          const item=document.createElement('div');
+          item.style.cssText='display:flex; align-items:center; gap:6px; min-width:0; cursor:pointer;';
+          const sw=document.createElement('span');
+          sw.style.cssText='width:9px; height:9px; border-radius:2px; flex:none; background:'+d.datasets[0].backgroundColor[i]+';';
+          const tx=document.createElement('span');
+          tx.style.cssText='font:10px/1.3 Neue Montreal, sans-serif; color:#6B746A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+          tx.textContent=label;
+          if(!chart.getDataVisibility(i)){ item.style.opacity='0.4'; tx.style.textDecoration='line-through'; }
+          item.onclick=()=>{ chart.toggleDataVisibility(i); chart.update(); };
+          item.appendChild(sw); item.appendChild(tx); box.appendChild(item);
+        });
+      } };
+    return this._htmlLegend;
+  }
+  doughnutCfg(items, opts){
+    opts=opts||{};
+    const fmtV=(v)=> opts.money? ('R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})) : this.fmtNum(v);
+    const colors=this.rampColors(items.length);
+    const total=items.reduce((a,i)=>a+i.count,0)||1;
+    return {
+      type:'doughnut',
+      data:{ labels:items.map(i=>i.label), datasets:[{ data:items.map(i=>i.count), backgroundColor:colors, borderWidth:0, spacing:0, hoverOffset:5 }] },
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:'62%',
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
+            callbacks:{ title:(c)=> c[0]? c[0].label : '', label:(c)=> ' '+fmtV(c.parsed)+' ('+this.fmtPct(c.parsed/total*100)+')' } }
+        }
+      },
+      plugins:[this.htmlLegend()]
+    };
+  }
+  barCfg(items, opts){
+    opts=opts||{};
+    const horizontal=!!opts.horizontal;
+    const colors = this.rampColors(items.length);
+    const wrap=(s)=>this.wrapLabel(s, 22);
+    return {
+      type:'bar',
+      data:{ labels:items.map(i=>i.label), datasets:[{ data:items.map(i=>i.count), backgroundColor: colors, borderRadius:4, borderSkipped:false, maxBarThickness:46 }] },
+      options:{
+        indexAxis: horizontal?'y':'x', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:false },
+          tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'}, callbacks:{ label:(c)=> this.fmtNum(horizontal?c.parsed.x:c.parsed.y)+' seguidores' } } },
+        scales:{
+          x:{ grid:{ display:horizontal, color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size: horizontal?10:10.5}, color:'#6B746A', autoSkip:false, maxRotation: horizontal?0:0, callback: horizontal? (v)=>this.fmtNum(v) : function(v){ const l=this.getLabelForValue(v); return l.length>16? l.slice(0,15)+'…' : l; } } },
+          y:{ beginAtZero:true, grid:{ display:!horizontal, color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size:10.5}, color:'#6B746A', autoSkip:false, callback: horizontal? function(v){ return wrap(this.getLabelForValue(v)); } : (v)=>this.fmtNum(v) } }
+        }
+      }
+    };
+  }
+
+  weekdayDatasets(win, valueFn){
+    const wk=this.weeksInWindow(win);
+    return wk.map((w,i)=>{ const data=[]; for(let d=0; d<7; d++){ const date=this.addDays(w.start,d); const row=this.dailyAt(date); data.push(row? valueFn(row): null); } return { label:'sem '+w.week, data, color:this.WEEK_COLORS[i%this.WEEK_COLORS.length] }; });
+  }
+
+  /* ============ RENDER ============ */
+  renderVals(){
+    const M=this.model, S=this.state, win=this.windowOf();
+    const accent='#172219';
+    const followers=M.followers;
+
+    // selectors
+    const monthOptions=[{value:'all',label:'Todos os meses'}].concat(M.months);
+    const weekOptions=[{value:'all',label:'Todas as semanas'}].concat(M.weeks.map(w=>({value:w.iso,label:w.label})));
+    const pages=[{key:'conta',label:'Dados da Conta'},{key:'conteudos',label:'Dados dos Conteúdos'},{key:'candidaturas',label:'Dados das Campanhas'}].map(p=>({
+      label:p.label,
+      onClick:()=>this.setPage(p.key),
+      style:`font-family:var(--font-sans); font-size:13px; font-weight:${S.page===p.key?'600':'500'}; cursor:pointer; padding:8px 16px; border-radius:var(--radius-md) var(--radius-md) 0 0; border:1px solid ${S.page===p.key?'var(--border-soft)':'transparent'}; border-bottom:2px solid ${S.page===p.key?accent:'transparent'}; background:${S.page===p.key?'var(--surface-page)':'transparent'}; color:${S.page===p.key?'var(--text-strong)':'var(--text-muted)'};`
+    }));
+
+    const base={
+      brand:M.profile, lastSync:S.lastSync, refreshing:S.refreshing, refreshLabel: S.refreshing?'Atualizando…':'Atualizar',
+      onRefresh:()=>this.onRefresh(),
+      sourceLabel: S.dataError? ('erro: '+S.dataError).slice(0,58) : (S.mediaLoading? ('ao vivo · @'+M.profile.handle+' · carregando dados…') : (S.refreshing? 'buscando dados ao vivo…' : (S.live? ('ao vivo · @'+M.profile.handle) : 'dados de exemplo · template'))),
+      sourceColor: S.dataError? 'var(--danger)' : (S.mediaLoading? 'var(--warning)' : (S.live? 'var(--success)' : 'var(--ink-300)')),
+      dormant: S.dormant && !S.mediaLoading,
+      pages, month:S.month, week:S.week, monthOptions, weekOptions,
+      onMonth:(e)=>this.setState({month:e.target.value, week:'all'}),
+      onWeek:(e)=>this.setState({week:e.target.value}),
+      accent, periodLabel: win.label,
+      isConta:S.page==='conta', isConteudos:S.page==='conteudos', isInsights:S.page==='insights', isCandidaturas:S.page==='candidaturas',
+      showFilters: S.page!=='candidaturas',
+      showFunnelFilters: S.page==='candidaturas',
+      pageTitle: S.page==='conta'?'Dados da Conta': S.page==='conteudos'?'Dados dos Conteúdos': S.page==='insights'?'Insights dos Conteúdos':'Dados das Campanhas',
+    };
+
+    // CONTA
+    const cur=this.agg(win.start,win.end);
+    const prev= win.prev? this.agg(win.prev.start,win.prev.end): null;
+    const curF=this.tlAt(win.end), prevF= win.prev? this.tlAt(win.prev.end): null;
+    const engG= cur.reach? cur.interactions/cur.reach*100 : 0;
+    const engF= followers? cur.interactions/followers*100 : 0;
+    const pEngG= prev&&prev.reach? prev.interactions/prev.reach*100 : null;
+    const pEngF= prev? prev.interactions/followers*100 : null;
+    const dFoll=this.delta(curF, prevF);
+    if(win.prev){ const ab=curF-prevF; dFoll.sub=(ab>=0?'+':'')+this.fmtNum(ab); }
+    const kpis=[
+      { label:'Seguidores', value:this.fmtNum(curF), accent, ...this.delta(curF,prevF), sub: win.prev? ((curF-prevF>=0?'+':'')+this.fmtNum(curF-prevF)):'' },
+      { label:'Visualizações', value:this.fmtNum(cur.views), accent, ...this.delta(cur.views, prev?prev.views:null) },
+      { label:'Alcance', value:this.fmtNum(cur.reach), accent, ...this.delta(cur.reach, prev?prev.reach:null) },
+      { label:'Interações', value:this.fmtNum(cur.interactions), accent, ...this.delta(cur.interactions, prev?prev.interactions:null) },
+      { label:'Cliques na bio', value:this.fmtNum(cur.taps), accent, ...this.delta(cur.taps, prev?prev.taps:null) },
+      { label:'Conteúdos', value:String(cur.postCount), accent, ...this.delta(cur.postCount, prev?prev.postCount:null) },
+      { label:'% engajamento geral', value:this.fmtPct(engG), accent, ...this.delta(engG, pEngG) },
+      { label:'% engajamento seguidores', value:this.fmtPct(engF), accent, ...this.delta(engF, pEngF) },
+    ].map(k=>({ label:k.label, value:k.value, accent:k.accent, deltaText:k.text, deltaColor:k.color, sub:k.sub||'' }));
+
+    // chart configs
+    const flWin=M.timeline.filter(t=>t.date>=win.start && t.date<=win.end);
+    const metricFns={ views:r=>r.views, reach:r=>r.reach, interactionRate:r=>r.reach?r.interactions/r.reach*100:null, saveRate:r=>r.reach?r.saves/r.reach*100:null, shareRate:r=>r.reach?r.shares/r.reach*100:null };
+    const metric2Pct = (S.metric2!=='views' && S.metric2!=='reach');
+    const wdLabels=['seg','ter','qua','qui','sex','sáb','dom'];
+    this._chartCfgs={
+      'chart-followers': this.lineCfg(flWin.map(t=>this.ddmm(t.date)), [{label:'seguidores', data:flWin.map(t=>t.value), color:accent, fill:true, fillColor:'rgba(23,34,25,0.08)'}], {zero:false}),
+      'chart-metric2': this.lineCfg(wdLabels, this.weekdayDatasets(win, metricFns[S.metric2]), {pct:metric2Pct, zero:metric2Pct}),
+      'chart-engfollowers': this.lineCfg(wdLabels, this.weekdayDatasets(win, r=> followers? r.interactions/followers*100 : null), {pct:true, zero:true}),
+      'chart-enggeneral': this.lineCfg(wdLabels, this.weekdayDatasets(win, r=> r.reach? r.interactions/r.reach*100 : null), {pct:true, zero:true}),
+    };
+    const metric2Options=[{value:'views',label:'Visualizações'},{value:'reach',label:'Alcance'},{value:'interactionRate',label:'Taxa de Interação'},{value:'saveRate',label:'Taxa de Salvamento'},{value:'shareRate',label:'Taxa de Compartilhamento'}];
+
+    // CONTEUDOS
+    const PM = this.postMetrics !== false; // per-post numeric metrics available?
+    const typeLabel=(t)=> t==='REELS'?'Reel': t==='CAROUSEL_ALBUM'?'Carrossel':'Imagem';
+    const winMedia=M.media.filter(p=>p.ts>=win.start && p.ts<=win.end).slice().sort((a,b)=> a.ts<b.ts?1:-1);
+    const contentMedia = winMedia; // respeita o filtro de mês/semana
+    const isTest=(p)=> PM && p.type==='REELS' && p.reach<500;
+    const cardOf=(p)=>{
+      const dayRow=this.dailyAt(p.ts);
+      const taps = dayRow? dayRow.taps : null;
+      const baseBg=this.COVER_BG[p.coverIdx%this.COVER_BG.length];
+      const src = p.coverData || p.thumb || p.cover;
+      const coverStyle = src
+        ? `position:relative; height:150px; display:flex; align-items:center; justify-content:center; background:linear-gradient(rgba(23,34,25,0.12), rgba(23,34,25,0.40)), center/cover no-repeat url("${src}"), ${baseBg};`
+        : `position:relative; height:150px; display:flex; align-items:center; justify-content:center; background:${baseBg}; background-image:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 60%);`;
+      return { typeLabel:typeLabel(p.type), date:this.ddmm(p.ts), caption:p.caption,
+        likes: PM?this.fmtNum(p.likes):'—', comments: PM?this.fmtNum(p.comments):'—', shares: PM?this.fmtNum(p.shares):'—', saves: PM?this.fmtNum(p.saves):'—',
+        coverStyle,
+        metrics:[
+          {label:'Visualizações', value: PM?this.fmtNum(p.views):'—'},
+          {label:'Alcance', value: PM?this.fmtNum(p.reach):'—'},
+          {label:'Interações', value: PM?this.fmtNum(p.eng):'—'},
+          {label:'% Eng. geral', value: PM?this.fmtPct(p.reach?p.eng/p.reach*100:null):'—'},
+          {label:'% Eng. seguidor', value: PM?this.fmtPct(p.eng/followers*100):'—'},
+          {label:'Tx. salvamento', value: PM?this.fmtPct(p.reach?p.saves/p.reach*100:null):'—'},
+          {label:'Tx. compart.', value: PM?this.fmtPct(p.reach?p.shares/p.reach*100:null):'—'},
+          {label:'Cliques na bio', value: PM?(taps==null?'—':this.fmtNum(taps)):'—'},
+        ] };
+    };
+    const posted=contentMedia.filter(p=>!isTest(p)).map(cardOf);
+    const tests=contentMedia.filter(isTest).map(cardOf);
+
+    // INSIGHTS
+    const winDays=M.daily.filter(r=>r.date>=win.start && r.date<=win.end);
+    const nd=winDays.length||1;
+    const valid=contentMedia.filter(p=> p.reach>0 && !isTest(p));
+    const n=valid.length||1;
+    const sum=(f)=>valid.reduce((a,p)=>a+f(p),0);
+    const averages = PM ? [
+      {label:'Alcance', value:this.fmtNum(sum(p=>p.reach)/n)},
+      {label:'Visualizações', value:this.fmtNum(sum(p=>p.views)/n)},
+      {label:'Interações', value:this.fmtNum(sum(p=>p.eng)/n)},
+      {label:'Comentários', value:this.fmtNum(sum(p=>p.comments)/n)},
+      {label:'Compartilhamentos', value:this.fmtNum(sum(p=>p.shares)/n)},
+      {label:'Salvamentos', value:this.fmtNum(sum(p=>p.saves)/n)},
+      {label:'% engajamento geral', value:this.fmtPct(sum(p=>p.reach)? sum(p=>p.eng)/sum(p=>p.reach)*100 : null)},
+      {label:'% engajamento seguidores', value:this.fmtPct((sum(p=>p.eng)/n)/followers*100)},
+    ] : [
+      {label:'Alcance / dia', value:this.fmtNum(cur.reach/nd)},
+      {label:'Visualizações / dia', value:this.fmtNum(cur.views/nd)},
+      {label:'Interações / dia', value:this.fmtNum(cur.interactions/nd)},
+      {label:'Likes / dia', value:this.fmtNum(cur.likes/nd)},
+      {label:'Comentários / dia', value:this.fmtNum(cur.comments/nd)},
+      {label:'Salvamentos / dia', value:this.fmtNum(cur.saves/nd)},
+      {label:'% engajamento geral', value:this.fmtPct(engG)},
+      {label:'% engajamento seguidores', value:this.fmtPct(engF)},
+    ];
+    const topMetricOptions=[{value:'views',label:'Visualizações'},{value:'reach',label:'Alcance'},{value:'eng',label:'Interações'},{value:'engG',label:'% Eng. geral'},{value:'engF',label:'% Eng. seguidor'},{value:'saveRate',label:'Tx. salvamento'},{value:'shareRate',label:'Tx. compart.'}];
+    const tmFn={ views:p=>p.views, reach:p=>p.reach, eng:p=>p.eng, engG:p=>p.reach?p.eng/p.reach*100:0, engF:p=>p.eng/followers*100, saveRate:p=>p.reach?p.saves/p.reach*100:0, shareRate:p=>p.reach?p.shares/p.reach*100:0 };
+    const tmPct=['engG','engF','saveRate','shareRate'].includes(S.topMetric);
+    const top3=valid.slice().sort((a,b)=>tmFn[S.topMetric](b)-tmFn[S.topMetric](a)).slice(0,3).map((p,i)=>({
+      rank:String(i+1), caption:p.caption, typeLabel:typeLabel(p.type), date:this.ddmm(p.ts),
+      metricValue: tmPct? this.fmtPct(tmFn[S.topMetric](p)) : this.fmtNum(tmFn[S.topMetric](p)),
+      coverStyle:`width:56px; height:56px; flex:none; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; background:${this.COVER_BG[p.coverIdx%this.COVER_BG.length]};`
+    }));
+
+    const { worked, notWorked } = this.learnings(valid, followers);
+
+    return { ...base,
+      kpis, metric2:S.metric2, metric2Options, onMetric2:(e)=>this.setState({metric2:e.target.value}),
+      posted, tests, postedCount:String(posted.length), testCount:String(tests.length),
+      hasPosted:posted.length>0, hasTest:tests.length>0, contentEmpty: posted.length===0 && tests.length===0,
+      averages, top3, topMetric:S.topMetric, topMetricOptions, onTopMetric:(e)=>this.setState({topMetric:e.target.value}),
+      worked, notWorked,
+      metricsAvailable: PM, noMetrics: !PM,
+      avgEyebrow: PM? 'Média por post no período' : 'Média diária no período',
+      avgTitle: PM? 'Desempenho médio' : 'Desempenho médio diário',
+      metricsNote: 'Este conector do Windsor não detalha métricas por publicação para @'+M.profile.handle+' — capa, legenda, tipo e data são reais; números por post aparecem como —. Os indicadores de conta e a série diária estão ao vivo.',
+      ...this.candVals(),
+    };
+  }
+
+  seguidoresInfo(){
+    const S=this.state, M=this.model, accent='#172219';
+    const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const mLbl=(ym)=>{ const p=ym.split('-'); return MN[(+p[1])-1]+'/'+p[0].slice(2); };
+    const daily=M.daily, follows=M.follows;
+    const monthSet=[...new Set(daily.map(d=>d.date.slice(0,7)))].sort();
+    const monthOpts=[{value:'all',label:'Todos os meses'}].concat(monthSet.map(ym=>({value:ym,label:mLbl(ym)})));
+    const minD=daily.length?daily[0].date:'', maxD=daily.length?daily[daily.length-1].date:'';
+    const funnelTabs=this.CAMPAIGNS.map(f=>({ label:f.name, active:f.key===S.campaign, inactive:f.key!==S.campaign, onClick:()=>this.setCampaign(f.key) }));
+    const _wb=this.monthBounds(S.candMonth, minD, maxD);
+    const candFilters={ month:S.candMonth, from:S.candFrom||_wb.start, to:S.candTo||(S.candMonth==='all'?(S.lastSyncYMD||_wb.end):_wb.end), monthOptions:monthOpts, min:minD, max:((S.lastSyncYMD&&S.lastSyncYMD>maxD)?S.lastSyncYMD:maxD),
+      onMonth:(e)=>this.setState({candMonth:e.target.value, candFrom:'', candTo:''}),
+      onFrom:(e)=>this.setState({candFrom:e.target.value, candMonth:'all'}),
+      onTo:(e)=>this.setState({candTo:e.target.value, candMonth:'all'}),
+      onClear:()=>this.setState({candMonth:'all', candFrom:'', candTo:''}),
+      hasFilter: S.candMonth!=='all' || !!S.candFrom || !!S.candTo };
+    // janela de datas
+    let start=minD, end=maxD;
+    if(S.candMonth!=='all'){ const ds=daily.filter(d=>d.date.slice(0,7)===S.candMonth).map(d=>d.date); if(ds.length){ start=ds[0]; end=ds[ds.length-1]; } }
+    if(S.candFrom) start=S.candFrom; if(S.candTo) end=S.candTo;
+    const rows=daily.filter(d=>d.date>=start && d.date<=end);
+    const fmap={}; follows.forEach(f=>{ if(f.net!=null) fmap[f.date]=f.net; });
+    const net=(d)=> (d in fmap)? fmap[d] : 0;
+    // cand-volume: novos seguidores por dia
+    const cfgs={ 'cand-volume': this.lineCfg(rows.map(d=>this.ddmm(d.date)), [{label:'novos seguidores', data:rows.map(d=>net(d.date)), color:accent, fill:true, fillColor:'rgba(23,34,25,0.08)'}], {zero:true}) };
+    // KPIs orgânicos
+    const totalNet=rows.reduce((a,d)=>a+net(d.date),0);
+    const days=rows.length||1, avgDay=Math.round(totalNet/days);
+    let best={n:-Infinity}; rows.forEach(d=>{ const n=net(d.date); if(n>best.n) best={n,date:d.date}; });
+    const totalReach=rows.reduce((a,d)=>a+d.reach,0);
+    const candKpis=[
+      {label:'Novos seguidores', value:(totalNet>=0?'+':'')+this.fmtNum(totalNet)},
+      {label:'Média por dia', value:(avgDay>=0?'+':'')+this.fmtNum(avgDay)},
+      {label:'Melhor dia', value: best.date? '+'+this.fmtNum(best.n) : '—'},
+      {label:'Alcance total', value:this.fmtNum(totalReach)},
+    ];
+    // ── demografia da audiência (idade / gênero / cidade) ──
+    const demo=S.demo||{age:{},gender:{},city:{}};
+    const AGE_ORDER=['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
+    const ageItems=AGE_ORDER.filter(a=>demo.age[a]!=null).map(a=>({label:a, count:demo.age[a]}));
+    const gLbl={F:'Mulheres', M:'Homens', U:'Não informado'}, gOrder=['F','M','U'];
+    const genderItems=gOrder.filter(g=>demo.gender[g]!=null).map(g=>({label:gLbl[g]||g, count:demo.gender[g]}));
+    const cityItems=Object.entries(demo.city).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>({label:k.split(',')[0], count:v}));
+    cfgs['cand-c0']=this.barCfg(ageItems);
+    cfgs['cand-c1']=this.doughnutCfg(genderItems);
+    cfgs['cand-c2']=this.barCfg(cityItems, {horizontal:true});
+    this._funnelCfgs=cfgs;
+    const candCharts=[
+      {id:'cand-c0', legendId:'cand-c0-lg', title:'Idade', eyebrow:'Audiência', donut:false, bar:true},
+      {id:'cand-c1', legendId:'cand-c1-lg', title:'Gênero', eyebrow:'Audiência', donut:true, bar:false},
+      {id:'cand-c2', legendId:'cand-c2-lg', title:'Cidade', eyebrow:'Audiência', donut:false, bar:true},
+    ];
+    const inv=this.investFunnel('perfil');
+    return { funnelTabs, products:[], showProductFilter:false, ...this.campFilterProps('perfil'), candFilters, candStatusBtns:[], candReady:true, candLoadingView:false,
+      candStatusLabel: this.BRAND_NAME+' · '+(totalNet>=0?'+':'')+this.fmtNum(totalNet)+' seguidores no período',
+      volEyebrow:'Por dia', volTitle:'Novos seguidores por dia',
+      candKpis, candStatus:[], candCharts, ...inv };
+  }
+
+  candVals(){
+    if(this.state.campaign==='perfil') return this.seguidoresInfo();
+    const S=this.state;
+    const effKey = S.campaign==='vendas' ? (S.product||'sdm') : S.campaign;
+    const products = this.PRODUCTS.map(p=>({ label:p.name, active:p.key===(S.product||'sdm'), inactive:p.key!==(S.product||'sdm'), onClick:()=>this.setProduct(p.key) }));
+    const showProductFilter = S.campaign==='vendas';
+    const campProps = showProductFilter ? {showCampFilter:false, campOptions:[], campFilterValue:'all', onCampFilter:()=>{}} : this.campFilterProps(effKey);
+    const funnelTabs=this.CAMPAIGNS.map(f=>({ label:f.name, active:f.key===S.campaign, inactive:f.key!==S.campaign,
+      onClick:()=>this.setCampaign(f.key) }));
+    // intervalo de datas e meses derivados dos próprios dados da página (anúncios + vendas)
+    let _cmin='', _cmax=''; const monthSet={};
+    const note=(d)=>{ if(!d) return; if(!_cmin||d<_cmin)_cmin=d; if(!_cmax||d>_cmax)_cmax=d; monthSet[d.slice(0,7)]=true; };
+    (S.adRows||[]).forEach(r=>note(r.d));
+    Object.values(S.sales||{}).forEach(arr=>arr.forEach(r=>note(r.date)));
+    const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const monthOpts=[{value:'all',label:'Todos os meses'}].concat(Object.keys(monthSet).sort().map(ym=>({value:ym,label:MN[+ym.slice(5,7)-1]+' '+ym.slice(0,4)})));
+    const _wb=this.monthBounds(S.candMonth, _cmin, _cmax);
+    const candFilters={ month:S.candMonth, from:S.candFrom||_wb.start, to:S.candTo||(S.candMonth==='all'?(S.lastSyncYMD||_wb.end):_wb.end),
+      monthOptions:monthOpts, min:_cmin, max:((S.lastSyncYMD&&S.lastSyncYMD>_cmax)?S.lastSyncYMD:_cmax),
+      onMonth:(e)=>this.setState({candMonth:e.target.value, candFrom:'', candTo:''}),
+      onFrom:(e)=>this.setState({candFrom:e.target.value, candMonth:'all'}),
+      onTo:(e)=>this.setState({candTo:e.target.value, candMonth:'all'}),
+      onClear:()=>this.setState({candMonth:'all', candFrom:'', candTo:''}),
+      hasFilter: S.candMonth!=='all' || !!S.candFrom || !!S.candTo };
+    const dataReady = (Object.keys(S.sales||{}).length>0) || !!(S.adRows&&S.adRows.length);
+    if(!dataReady){
+      this._funnelCfgs=null;
+      return { funnelTabs, products, showProductFilter, ...campProps, candFilters, candStatusBtns:[], candReady:false, candLoadingView:true,
+        ...this.investFunnel(effKey), ...this.salesInfo(effKey),
+        candStatusLabel: S.salesError? ('erro ao ler as vendas: '+S.salesError).slice(0,90) : (S.adsError? ('erro nos anúncios: '+S.adsError).slice(0,90) : 'carregando dados…'),
+        candKpis:[], candStatus:[], candCharts:[] };
+    }
+    this._funnelCfgs={};
+    const sales=this.salesInfo(effKey);
+    const inv=this.investFunnel(effKey);
+    return { funnelTabs, products, showProductFilter, ...campProps, candFilters, candStatusBtns:[], candReady:true, candLoadingView:false,
+      ...sales, candStatusLabel:'',
+      volEyebrow:'Por dia', volTitle:'', candKpis:[], candStatus:[], candCharts:[], ...inv };
+  }
+
+  // Investimento da campanha — Facebook Ads (por produto: WA/Reset/Ciclo/Essência).
+  investFunnel(key, total){
+    if(key==='perfil') return this.perfilFunnel();
+    if(!this.ADS_CAMPAIGN_MATCH[key]){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', adsStatus:'' }; }
+    const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const S=this.state;
+    // respeita os filtros de mês / intervalo de datas da página
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const cf=S.campFilter||'all';
+    const rows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && (cf==='all' || r.camp===cf));
+    const isEng = false;
+    const kind = this.CAMPAIGN_KIND[key] || 'sales';
+    const byAd={}, byAdset={};
+    rows.forEach(r=>{
+      if(!byAd[r.ad]) byAd[r.ad]={ name:r.ad, thumb:'', perma:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
+      const a=byAd[r.ad]; a.impressions+=r.impr; a.reach+=r.reach; a.linkClicks+=r.clk; a.lpViews+=r.lpv; a.leads+=r.leads; a.purch+=(r.purch||0); a.chk+=(r.chk||0); a.spend+=r.spend; a.eng+=(r.eng||0); a.vv+=(r.vv||0); a.reac+=(r.reac||0); a.save+=(r.save||0); if(!a.thumb&&r.thumb) a.thumb=r.thumb; if(!a.perma&&r.perma) a.perma=r.perma;
+      if(!byAdset[r.adset]) byAdset[r.adset]={ name:r.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
+      const s=byAdset[r.adset]; s.impressions+=r.impr; s.reach+=r.reach; s.linkClicks+=r.clk; s.lpViews+=r.lpv; s.leads+=r.leads; s.purch+=(r.purch||0); s.chk+=(r.chk||0); s.spend+=r.spend; s.eng+=(r.eng||0); s.vv+=(r.vv||0); s.reac+=(r.reac||0); s.save+=(r.save||0);
+    });
+    const ads=Object.values(byAd).sort((a,b)=>b.impressions-a.impressions);
+    const adsetsArr=Object.values(byAdset).sort((a,b)=>b.impressions-a.impressions);
+    const prod=this.CAMPAIGNS.find(c=>c.key===key) || this.PRODUCTS.find(c=>c.key===key);
+    const investEyebrow = (this.CAMPAIGN_KIND[key]==='sales') ? 'Vendas' : (prod? prod.name : '');
+    const hasReal = ads.length>0;
+    const sum=(f)=>ads.reduce((a,x)=>a+(x[f]||0),0);
+    const alcance=sum('reach'), impressoes=sum('impressions'), cliques=sum('linkClicks'),
+      lpViews=sum('lpViews'), leadsGer=sum('leads'), investido=sum('spend'),
+      inter=sum('eng'), reprod=sum('vv'), reacoes=sum('reac'), salvos=sum('save');
+    const cpm=impressoes? investido/impressoes*1000 : 0;
+    const cpc=cliques? investido/cliques : 0;
+    const custoGer=leadsGer? investido/leadsGer : 0;
+    const connectRate=cliques? lpViews/cliques*100 : 0;
+    const custoInter=inter? investido/inter : 0;
+    const engRate=impressoes? inter/impressoes*100 : 0;
+    const custoReprod=reprod? investido/reprod : 0;
+    const vendas=sum('purch');
+    const checkout=sum('chk');
+    const custoChk=checkout? investido/checkout : 0;
+    const custoVenda=vendas? investido/vendas : 0;
+    const cpl=leadsGer? investido/leadsGer : 0;
+    const ctr=impressoes? cliques/impressoes*100 : 0;
+    const div=(a,b)=> b? a/b : null;
+    let raw, investStats, colAds, colSets;
+    if(isEng){
+      raw=[
+        { label:'Alcance', value:alcance, conv:null, cost:null },
+        { label:'Impressões', value:impressoes, freq:div(impressoes,alcance), cost:null },
+        { label:'Interações', value:inter, conv:div(inter,impressoes), cost:money2(custoInter) },
+        { label:'Reproduções de vídeo', value:reprod, conv:div(reprod,impressoes), cost:null },
+        { label:'Reações e salvamentos', value:reacoes+salvos, conv:div(reacoes+salvos,inter), cost:null },
+      ];
+      investStats=[
+        { label:'Investimento', value:'R$ '+this.fmtNum(investido) },
+        { label:'CPM', value:money2(cpm) },
+        { label:'Custo por interação', value:money2(custoInter) },
+        { label:'Taxa de engajamento', value:this.fmtPct(engRate) },
+        { label:'Custo por reprodução', value:money2(custoReprod) },
+      ];
+      colAds=['Interações','Reproduções','Reações','Taxa de eng.'];
+      colSets=['Interações','Reprod.','Reações','Taxa eng.'];
+    }else if(kind==='leads'){
+      raw=[
+        { label:'Alcance', value:alcance, conv:null, cost:null },
+        { label:'Impressões', value:impressoes, freq:div(impressoes,alcance), cost:null },
+        { label:'Cliques no link', value:cliques, conv:div(cliques,impressoes), cost:money2(cpc) },
+        { label:'Visualizações da página', value:lpViews, conv:div(lpViews,cliques), cost:null },
+        { label:'Leads', value:leadsGer, conv:div(leadsGer,lpViews), cost:money2(cpl) },
+      ];
+      investStats=[
+        { label:'Investimento', value:'R$ '+this.fmtNum(investido) },
+        { label:'Leads', value:this.fmtNum(leadsGer) },
+        { label:'Custo por lead', value:money2(cpl) },
+        { label:'CTR', value:this.fmtPct(ctr) },
+        { label:'CPM', value:money2(cpm) },
+      ];
+      colAds=['Cliques no link','Visualização da página','Connect rate','Leads'];
+      colSets=['Cliques','Visu. pág.','Connect','Leads'];
+    }else{
+      raw=[
+        { label:'Alcance', value:alcance, conv:null, cost:null },
+        { label:'Impressões', value:impressoes, freq:div(impressoes,alcance), cost:null },
+        { label:'Cliques no link', value:cliques, conv:div(cliques,impressoes), cost:money2(cpc) },
+        { label:'Visualizações da página', value:lpViews, conv:div(lpViews,cliques), cost:null },
+        { label:'Finalização de compra', value:checkout, conv:div(checkout,lpViews), cost:money2(custoChk) },
+        { label:'Vendas do gerenciador', value:vendas, conv:div(vendas,checkout), cost:money2(custoVenda) },
+      ];
+      investStats=[
+        { label:'Investimento', value:'R$ '+this.fmtNum(investido) },
+        { label:'CPM', value:money2(cpm) },
+        { label:'Custo por clique', value:money2(cpc) },
+        { label:'Connect rate', value:this.fmtPct(connectRate) },
+        { label:'Custo por venda', value:money2(custoVenda) },
+      ];
+      colAds=['Cliques no link','Visualização da página','Connect rate','Vendas do gerenciador'];
+      colSets=['Cliques','Visu. pág.','Connect','Vendas'];
+    }
+    const widths=raw.map((_,i)=> 100 - Math.round(i*44/Math.max(1,raw.length-1)) );
+    const investStages=raw.map((s,i)=>{
+      const convStr = s.freq!=null ? (s.freq).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : (s.conv==null? '' : this.fmtPct(s.conv*100));
+      const left = convStr ? (s.cost ? convStr+'  -  '+s.cost : convStr) : '';
+      return { label:s.label, value:this.fmtNum(s.value), left, barStyle:`width:${widths[i]}%; background:#172219;` };
+    });
+    const adAcc = {
+      name: a=>(a.name||'').toLowerCase(),
+      impr: a=>a.impressions||0,
+      ctr:  a=> a.impressions? a.linkClicks/a.impressions : 0,
+      c2:   a=> isEng? (a.eng||0) : (a.linkClicks||0),
+      c3:   a=> isEng? (a.vv||0) : (a.lpViews||0),
+      c4:   a=> isEng? (a.reac||0) : (a.linkClicks? a.lpViews/a.linkClicks : 0),
+      c5:   a=> isEng? (a.impressions? a.eng/a.impressions : 0) : (kind==='leads'? (a.leads||0) : (a.purch||0)),
+    };
+    const sortArr=(arr, st)=>{ const kk=(st&&st.key)||'impr'; const dir=(st&&st.dir)||-1; const f=adAcc[kk]||adAcc.impr;
+      return arr.slice().sort((x,y)=>{ const vx=f(x), vy=f(y); if(typeof vx==='string') return dir*String(vx).localeCompare(String(vy),'pt'); return dir*(((vx)||0)-((vy)||0)); }); };
+    const adsSorted=sortArr(ads, S.adSort);
+    const adsetsSorted=sortArr(adsetsArr, S.adsetSort);
+    const sArrow=(st,kk)=>{ if(!st||st.key!==kk) return ''; return st.dir===-1?' \u2193':' \u2191'; };
+    const sortCols=['name','impr','ctr','c2','c3','c4','c5'];
+    const hAd={}, arAd={}, hSet={}, arSet={};
+    sortCols.forEach(kk=>{ hAd[kk]=()=>this.toggleSort('adSort',kk); arAd[kk]=sArrow(S.adSort,kk); hSet[kk]=()=>this.toggleSort('adsetSort',kk); arSet[kk]=sArrow(S.adsetSort,kk); });
+    const investAds=adsSorted.slice(0,12).map((a,i)=>({ idx:i, name:a.name, perma:a.perma||'', hasLink:!!a.perma, noLink:!a.perma,
+      thumbStyle: a.thumb? `width:42px; height:42px; flex:none; border-radius:5px; background:#172219 center/cover no-repeat url("${a.thumb}");`
+        : `width:42px; height:42px; flex:none; border-radius:5px; background:linear-gradient(135deg, #172219, #2C3A2E);`,
+      impr:this.fmtNum(a.impressions),
+      ctr:this.fmtPct(a.impressions? a.linkClicks/a.impressions*100 : 0),
+      clk:this.fmtNum(isEng? a.eng : a.linkClicks),
+      lpv:this.fmtNum(isEng? a.vv : a.lpViews),
+      cr:isEng? this.fmtNum(a.reac) : this.fmtPct(a.linkClicks? a.lpViews/a.linkClicks*100 : 0),
+      leads:isEng? this.fmtPct(a.impressions? a.eng/a.impressions*100 : 0) : (kind==='leads'? this.fmtNum(a.leads) : this.fmtNum(a.purch)) }));
+    const adsets=adsetsArr;
+    const investAdsets=adsetsSorted.slice(0,30).map((a,i)=>({ idx:i, name:a.name,
+      impr:this.fmtNum(a.impressions),
+      ctr:this.fmtPct(a.impressions? a.linkClicks/a.impressions*100 : 0),
+      clk:this.fmtNum(isEng? a.eng : a.linkClicks),
+      lpv:this.fmtNum(isEng? a.vv : a.lpViews),
+      cr:isEng? this.fmtNum(a.reac) : this.fmtPct(a.linkClicks? a.lpViews/a.linkClicks*100 : 0),
+      leads:isEng? this.fmtPct(a.impressions? a.eng/a.impressions*100 : 0) : (kind==='leads'? this.fmtNum(a.leads) : this.fmtNum(a.purch)) }));
+    const adsStatus = S.adsError? ('Facebook Ads: '+S.adsError).slice(0,80) : (S.adsLoading? 'carregando campanhas do Facebook…' : (hasReal? '' : 'sem dados para esta campanha'));
+    return { investShow:true, segMode:false, showAdsets:true, showAds:true, investStages, investStats, investAds, investAdsets, investPubs:[], investEyebrow, adsStatus,
+      hAd, arAd, hSet, arSet,
+      colA2:colAds[0], colA3:colAds[1], colA4:colAds[2], colA5:colAds[3],
+      colS2:colSets[0], colS3:colSets[1], colS4:colSets[2], colS5:colSets[3] };
+  }
+
+  /* ============ VENDAS (Eduzz) ============ */
+  // Cadência: mês atual sempre ao vivo; 1ª semana do mês (dias 1–7) atualiza atual + anterior; resto fica em cache.
+  async fetchSales(){
+    if(this.state.salesLoading) return;
+    this.setState({salesLoading:true, salesError:''});
+    try{
+      const now=new Date();
+      const curYM=now.toISOString().slice(0,7);
+      const day=now.getDate();
+      const prevYM=new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,7);
+      let cache={}; try{ cache=JSON.parse(localStorage.getItem(this.SALES_CKEY)||'{}'); }catch(e){}
+      const sales={};
+      for(const ym of Object.keys(this.SALES_SHEETS)){
+        const cached = cache[ym] && Array.isArray(cache[ym]);
+        const fresh = (ym===curYM) || (day<=7 && ym===prevYM) || !cached;
+        if(!fresh){ sales[ym]=cache[ym]; continue; }
+        try{
+          const url='https://docs.google.com/spreadsheets/d/'+this.SALES_SHEETS[ym]+'/gviz/tq?tqx=out:csv&_cb='+Date.now();
+          const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+          const agg=this.aggregateSales(this.parseCSV(await r.text()));
+          sales[ym]=agg; cache[ym]=agg;
+        }catch(e){ if(cached) sales[ym]=cache[ym]; }
+      }
+      try{ localStorage.setItem(this.SALES_CKEY, JSON.stringify(cache)); }catch(e){}
+      this.setState({salesLoading:false, sales});
+    }catch(e){ this.setState({salesLoading:false, salesError:(e&&e.message)||'falha ao ler vendas'}); }
+  }
+
+  /* ============ NOVOS SEGUIDORES (turbinamento — .xlsx do Drive, ao vivo via gviz) ============ */
+  async fetchSeguidores(){
+    if(this._segLoading) return;
+    this._segLoading=true;
+    const num=(s)=>{ s=String(s||'').trim(); if(!s) return 0; if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.'); const v=parseFloat(s.replace(/[^0-9.\-]/g,'')); return isNaN(v)?0:v; };
+    const clean=(s)=>{ const t=String(s||'').replace(/^\s*(Post do Instagram|Instagram post|Publicação do Instagram|Instagram Post|Instagram Profile Visits Ad|Instagram Mixed Goals[^:]*)\s*:\s*/i,'').trim(); return t||String(s||'').trim(); };
+    try{
+      // acc[dia][nome] — agrega cada publicação turbinada por DIA (coluna "Day")
+      const acc={};
+      await Promise.all(this.SEG_SHEETS.map(async(id)=>{
+        try{
+          const url='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&_cb='+Date.now();
+          const r=await fetch(url,{cache:'no-store'}); if(!r.ok) return;
+          const rows=this.parseCSV(await r.text());
+          // layout diário: Day(0) Campaign(1) Adset(2) Spend(3) DelivStatus(4) DelivLevel(5) Reach(6) Impr(7) Visits(8) Follows(9)
+          rows.slice(1).forEach(c=>{
+            if(!c||c.length<10) return;
+            const day=String(c[0]||'').trim(); if(!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+            const name=clean(c[1]); if(!name) return;
+            const spend=num(c[3]); if(spend<=0) return;             // só publicações com verba
+            if(!acc[day]) acc[day]={};
+            if(!acc[day][name]) acc[day][name]={ name, spend:0, reach:0, impr:0, visits:0, follows:0 };
+            const a=acc[day][name];
+            a.spend+=spend; a.reach+=num(c[6]); a.impr+=num(c[7]); a.visits+=num(c[8]); a.follows+=num(c[9]);
+          });
+        }catch(e){}
+      }));
+      const out={};
+      Object.keys(acc).forEach(day=>{ out[day]=Object.values(acc[day]).map(o=>[o.name,o.spend,o.reach,o.impr,o.visits,o.follows]); });
+      if(Object.keys(out).length){
+        try{ localStorage.setItem(this.SEG_CKEY, JSON.stringify(out)); }catch(e){}
+        this.setState({seg:out});
+      }
+    }finally{ this._segLoading=false; }
+  }
+
+  // Converte linhas da planilha em registros {fatura,status,date,item,net,tab}. Colunas Eduzz fixas.
+  aggregateSales(rows){
+    const num=(s)=>{ s=String(s||'').replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; };
+    const out=[];
+    rows.slice(1).forEach(r=>{
+      if(!r || r.length<37 || !(r[0]||'').trim()) return;
+      const tab=this.SALES_PROD_TAB[(r[16]||'').trim()];
+      if(!tab) return; // ignora produtos fora das 4 abas
+      out.push({ fatura:(r[0]||'').trim(), status:(r[1]||'').trim(),
+        date:this.parseRowDate(r[8])||this.parseRowDate(r[10]), item:num(r[26]), net:num(r[36]), tab,
+        utm:(r[50]||'').trim(), cupom:(r[20]||'').trim(), oferta:(r[56]||'').trim(),
+        utmCamp:(r[51]||'').trim(), utmCont:(r[53]||'').trim() });
+    });
+    return out;
+  }
+
+  // KPIs de vendas para um produto, respeitando o filtro de mês / intervalo da página.
+  salesInfo(key){
+    // AK não tem planilha Eduzz — abas de venda mostram apenas o funil de anúncios.
+    if(!this.HAS_SALES_SHEET) return { salesShow:false, salesFilterShow:false };
+    if(key==='seguidores' || key==='engajamento' || key==='perfil' || key==='leads') return { salesShow:false, salesFilterShow:false };
+    const S=this.state;
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const norm=(u)=>{ u=(u||'').trim(); return u||'(não informado)'; };
+    // opções de origem (UTM) — globais: todas as vendas pagas de todos os produtos
+    const optMap={};
+    Object.values(S.sales||{}).forEach(arr=>arr.forEach(r=>{ if(r.status==='Paga'){ const u=norm(r.utm); optMap[u]=(optMap[u]||0)+1; } }));
+    const salesUtmOptions=[{value:'all',label:'Todas as origens'}].concat(
+      Object.keys(optMap).sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'})).slice(0,40).map(u=>({value:u,label:u})) );
+    const uf=S.salesUtmFilter||'all';
+    // linhas do produto no range, aplicando o filtro de origem
+    const rows=[];
+    Object.values(S.sales||{}).forEach(arr=>arr.forEach(r=>{ if(r.tab===key && inRange(r.date) && (uf==='all' || norm(r.utm)===uf)) rows.push(r); }));
+    let fat=0, net=0; const inv=new Set();
+    rows.forEach(r=>{ if(r.status==='Paga'){ fat+=r.item; net+=r.net; inv.add(r.fatura); } else if(r.status==='Reembolsado'){ net+=r.net; } });
+    const nVendas=inv.size, ticket= nVendas? fat/nVendas : 0;
+    const invest=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d)).reduce((a,x)=>a+(x.spend||0),0);
+    const utmActive = uf!=='all';
+    const roas= (utmActive||!invest)? null : fat/invest;
+    const custo= (utmActive||!nVendas)? null : invest/nVendas;
+    const money=(v)=> 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const salesKpis=[
+      { label:'Faturamento', value: money(fat) },
+      { label:'Nº de vendas', value: this.fmtNum(nVendas) },
+      { label:'Ticket médio', value: money(ticket) },
+      { label:'Ganho líquido', value: money(net) },
+      { label:'ROAS', value: roas==null? '—' : roas.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'x' },
+      { label:'Custo / venda', value: custo==null? '—' : money(custo) },
+    ];
+    // vendas pagas por dia (gráfico de linha)
+    const dayMap={}; let dmin=null, dmax=null;
+    rows.forEach(r=>{ if(r.status!=='Paga' || !r.date) return; (dayMap[r.date]=dayMap[r.date]||new Set()).add(r.fatura); if(!dmin||r.date<dmin) dmin=r.date; if(!dmax||r.date>dmax) dmax=r.date; });
+    const dayLabels=[], dayData=[];
+    if(dmin && dmax){ let cur=dmin, guard=0; while(cur<=dmax && guard<800){ dayLabels.push(this.ddmm(cur)); dayData.push(dayMap[cur]?dayMap[cur].size:0); cur=this.addDays(cur,1); guard++; } }
+    const salesDailyShow = dayLabels.length>0;
+    if(this._funnelCfgs && salesDailyShow){ this._funnelCfgs['sales-daily']=this.lineCfg(dayLabels, [{label:'vendas', data:dayData, color:'#172219', fill:true, fillColor:'rgba(23,34,25,0.08)'}], {zero:true}); }
+    // distribuição das vendas pagas por UTM Source (origem)
+    const utmMap={};
+    rows.forEach(r=>{ if(r.status!=='Paga') return; const u=norm(r.utm); utmMap[u]=(utmMap[u]||0)+1; });
+    let utmItems=Object.entries(utmMap).map(([label,count])=>({label,count})).sort((a,b)=>b.count-a.count);
+    if(utmItems.length>8){ const top=utmItems.slice(0,7); const rest=utmItems.slice(7).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); utmItems=top; }
+    if(this._funnelCfgs && utmItems.length){ this._funnelCfgs['sales-utm']=this.doughnutCfg(utmItems); }
+    // cupom (barra horizontal) — eficiência do cupom sobre as compras pagas
+    const cupMap={};
+    rows.forEach(r=>{ if(r.status!=='Paga') return; const c=(r.cupom||'').trim()||'SEM CUPOM'; cupMap[c]=(cupMap[c]||0)+1; });
+    let cupItems=Object.entries(cupMap).map(([label,count])=>({label,count})).sort((a,b)=>b.count-a.count);
+    if(cupItems.length>10){ const top=cupItems.slice(0,9); const rest=cupItems.slice(9).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); cupItems=top; }
+    if(this._funnelCfgs && cupItems.length){ this._funnelCfgs['sales-cupom']=this.barCfg(cupItems, {horizontal:true}); }
+    // UTM Campaign (rosca)
+    const campMap={};
+    rows.forEach(r=>{ if(r.status!=='Paga') return; const u=(r.utmCamp||'').trim()||'(não informado)'; campMap[u]=(campMap[u]||0)+1; });
+    let campItems=Object.entries(campMap).map(([label,count])=>({label,count})).sort((a,b)=>b.count-a.count);
+    if(campItems.length>8){ const top=campItems.slice(0,7); const rest=campItems.slice(7).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); campItems=top; }
+    if(this._funnelCfgs && campItems.length){ this._funnelCfgs['sales-utmcamp']=this.doughnutCfg(campItems); }
+    // UTM Content (rosca)
+    const contMap={};
+    rows.forEach(r=>{ if(r.status!=='Paga') return; const u=(r.utmCont||'').trim()||'(não informado)'; contMap[u]=(contMap[u]||0)+1; });
+    let contItems=Object.entries(contMap).map(([label,count])=>({label,count})).sort((a,b)=>b.count-a.count);
+    if(contItems.length>8){ const top=contItems.slice(0,7); const rest=contItems.slice(7).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); contItems=top; }
+    if(this._funnelCfgs && contItems.length){ this._funnelCfgs['sales-utmcont']=this.doughnutCfg(contItems); }
+    return { salesShow:true, salesKpis,
+      salesUtmShow: utmItems.length>0, salesDailyShow,
+      salesCupomShow: cupItems.length>0,
+      salesCampShow: campItems.length>0, salesContShow: contItems.length>0,
+      salesUtmOptions, salesUtmFilter:uf, salesFilterShow: salesUtmOptions.length>1,
+      onSalesUtm:(e)=>this.setState({salesUtmFilter:e.target.value}) };
+  }
+
+  // Perfil / Visitas — campanhas de tráfego de perfil (Facebook Ads). Estrutura de "novos seguidores".
+  perfilFunnel(){
+    const S=this.state;
+    const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const cf=S.campFilter||'all';
+    const rows=(S.adRows||[]).filter(r=> r.c==='perfil' && inRange(r.d) && (cf==='all' || r.camp===cf));
+    const byName={};
+    rows.forEach(r=>{ const nm=r.ad; if(!byName[nm]) byName[nm]={ name:nm, spend:0, reach:0, impr:0, visits:0 };
+      const a=byName[nm]; a.spend+=r.spend; a.reach+=r.reach; a.impr+=r.impr; a.visits+=r.clk; });
+    const pubs=Object.values(byName);
+    const sum=(f)=>pubs.reduce((a,x)=>a+(x[f]||0),0);
+    const spend=sum('spend'), reach=sum('reach'), impr=sum('impr'), visits=sum('visits');
+    const custoVisita= visits? spend/visits : 0;
+    const ctr= impr? visits/impr*100 : 0;
+    const cpm= impr? spend/impr*1000 : 0;
+    const div=(a,b)=> b? a/b : null;
+    const raw=[
+      { label:'Alcance', value:reach, conv:null, cost:null },
+      { label:'Impressões', value:impr, freq:div(impr,reach), cost:null },
+      { label:'Visitas ao perfil', value:visits, conv:div(visits,impr), cost:money2(custoVisita) },
+    ];
+    const widths=[100,90,78];
+    const investStages=raw.map((s,i)=>{ const convStr = s.freq!=null ? (s.freq).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : (s.conv==null? '' : this.fmtPct(s.conv*100)); const left = convStr ? (s.cost ? convStr+'  -  '+s.cost : convStr) : ''; return { label:s.label, value:this.fmtNum(s.value), left, barStyle:`width:${widths[i]}%; background:#172219;` }; });
+    const investStats=[
+      { label:'Investimento', value:'R$ '+this.fmtNum(spend) },
+      { label:'Visitas ao perfil', value:this.fmtNum(visits) },
+      { label:'Custo por visita', value:money2(custoVisita) },
+      { label:'CTR', value:this.fmtPct(ctr) },
+      { label:'CPM', value:money2(cpm) },
+    ];
+    const investPubs=this.sortPubs(pubs).map((p,i)=>({ idx:i, name:p.name,
+      spend:money2(p.spend), reach:this.fmtNum(p.reach), impr:this.fmtNum(p.impr), visits:this.fmtNum(p.visits),
+      conv:p.impr? this.fmtPct(p.visits/p.impr*100):'—', cost:p.visits? money2(p.spend/p.visits):'—' }));
+    const adsStatus = S.adsError? ('Facebook Ads: '+S.adsError).slice(0,80) : (S.adsLoading? 'carregando campanhas do Facebook…' : (pubs.length? '' : 'sem dados para esta campanha'));
+    let budgetItems=pubs.filter(p=>p.spend>0).map(p=>({label:p.name, count:p.spend})).sort((a,b)=>b.count-a.count);
+    if(budgetItems.length>10){ const top=budgetItems.slice(0,9); const rest=budgetItems.slice(9).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); budgetItems=top; }
+    if(this._funnelCfgs){ this._funnelCfgs['seg-budget']=this.doughnutCfg(budgetItems, {money:true}); }
+    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'perfil / visitas', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus, ...this.pubHeaders() };
+  }
+
+  // Novos Seguidores — turbinamento de publicações no Instagram (visitas → seguidores).
+  followerFunnel(){
+    const S=this.state;
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const SEG = (S.seg && Object.keys(S.seg).length) ? S.seg : this.SEGUIDORES;
+    // agrega cada publicação turbinada ao longo dos dias dentro do range (chave = dia "2026-06-30"; o
+    // fallback mensal usa chave "2026-06" → dia representativo "2026-06-01")
+    const byName={};
+    Object.keys(SEG).forEach(k=>{ const day = k.length>7 ? k : (k+'-01'); if(!inRange(day)) return;
+      SEG[k].forEach(r=>{ const nm=r[0]; if(!byName[nm]) byName[nm]={ name:nm, spend:0, reach:0, impr:0, visits:0, follows:0 };
+        const a=byName[nm]; a.spend+=r[1]; a.reach+=r[2]; a.impr+=r[3]; a.visits+=r[4]; a.follows+=r[5]; }); });
+    const pubs=Object.values(byName);
+    const sum=(f)=>pubs.reduce((a,x)=>a+(x[f]||0),0);
+    const spend=sum('spend'), reach=sum('reach'), impr=sum('impr'), visits=sum('visits'), follows=sum('follows');
+    const custoSeg= follows? spend/follows : 0;
+    const conv= visits? follows/visits*100 : 0;
+    const div=(a,b)=> b? a/b : null;
+    const raw=[
+      { label:'Alcance', value:reach, conv:null, cost:null },
+      { label:'Impressões', value:impr, freq:div(impr,reach), cost:null },
+      { label:'Visitas ao perfil', value:visits, conv:div(visits,impr), cost:null },
+      { label:'Seguidores', value:follows, conv:div(follows,visits), cost:money2(custoSeg) },
+    ];
+    const widths=[100,92,82,72];
+    const investStages=raw.map((s,i)=>{ const convStr = s.freq!=null ? (s.freq).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : (s.conv==null? '' : this.fmtPct(s.conv*100)); const left = convStr ? (s.cost ? convStr+'  -  '+s.cost : convStr) : ''; return { label:s.label, value:this.fmtNum(s.value), left, barStyle:`width:${widths[i]}%; background:#172219;` }; });
+    const investStats=[
+      { label:'Investimento', value:'R$ '+this.fmtNum(spend) },
+      { label:'Seguidores', value:this.fmtNum(follows) },
+      { label:'Visitas ao perfil', value:this.fmtNum(visits) },
+      { label:'Custo / seguidor', value:money2(custoSeg) },
+      { label:'% conversão visita→seguidor', value:this.fmtPct(conv) },
+    ];
+    const investPubs=pubs.slice().sort((a,b)=>b.spend-a.spend).map((p,i)=>({ idx:i, name:p.name,
+      spend:money2(p.spend), reach:this.fmtNum(p.reach), impr:this.fmtNum(p.impr), visits:this.fmtNum(p.visits), follows:this.fmtNum(p.follows),
+      cost:p.follows? money2(p.spend/p.follows):'—', conv:p.visits? this.fmtPct(p.follows/p.visits*100):'—' }));
+    const adsStatus = pubs.length? '' : 'sem turbinamento no período';
+    // rosca: distribuição do orçamento entre as publicações turbinadas no range (pubs já agregado por nome)
+    let budgetItems=pubs.filter(p=>p.spend>0).map(p=>({label:p.name, count:p.spend})).sort((a,b)=>b.count-a.count);
+    if(budgetItems.length>10){ const top=budgetItems.slice(0,9); const rest=budgetItems.slice(9).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); budgetItems=top; }
+    if(this._funnelCfgs){ this._funnelCfgs['seg-budget']=this.doughnutCfg(budgetItems, {money:true}); }
+    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'novos seguidores', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus };
+  }
+
+  learnings(valid, followers){
+    if(valid.length<2) return { worked:[{title:'Dados insuficientes', detail:'Selecione um período com mais conteúdos publicados para gerar aprendizados.'}], notWorked:[{title:'Dados insuficientes', detail:'Sem posts suficientes para comparar.'}] };
+    const avgReach = valid.reduce((a,p)=>a+p.reach,0)/valid.length;
+    const rate=(p)=>p.reach?p.eng/p.reach*100:0;
+    const sRate=(p)=>p.reach?p.saves/p.reach*100:0;
+    const avgRate = valid.reduce((a,p)=>a+rate(p),0)/valid.length;
+    const by=(f)=>valid.slice().sort((a,b)=>f(b)-f(a));
+    const maxReach=by(p=>p.reach)[0], minReach=by(p=>p.reach)[valid.length-1];
+    const maxShare=by(p=>p.shares)[0];
+    const maxSave=by(sRate)[0], minSave=by(sRate)[valid.length-1];
+    const maxEng=by(rate)[0], maxComment=by(p=>p.comments)[0];
+    const highReachLowEng=by(p=>p.reach).find(p=> rate(p)<avgRate);
+    const q=(s)=>'“'+s+'”';
+    const worked=[
+      {title:'Maior alcance do período', detail:q(maxReach.caption)+' alcançou '+this.fmtNum(maxReach.reach)+' contas — '+this.fmtPct((maxReach.reach/avgReach-1)*100)+' acima da média. Repita o formato e o tema.'},
+      {title:'Mais compartilhado', detail:q(maxShare.caption)+' teve '+this.fmtNum(maxShare.shares)+' compartilhamentos. Conteúdo que as pessoas enviam para amigos amplia alcance — vale uma sequência.'},
+      {title:'Melhor taxa de salvamento', detail:q(maxSave.caption)+' salvou '+this.fmtPct(sRate(maxSave))+' do alcance. Sinal de conteúdo de referência; transforme em carrossel salvável.'},
+      {title:'Mais engajante', detail:q(maxEng.caption)+' converteu '+this.fmtPct(rate(maxEng))+' do alcance em interações. Use a mesma abertura nos próximos posts.'},
+      {title:'Gerou conversa', detail:q(maxComment.caption)+' recebeu '+this.fmtNum(maxComment.comments)+' comentários. Perguntas na legenda funcionam — mantenha o convite à resposta.'},
+    ];
+    const notWorked=[
+      {title:'Menor alcance do período', detail:q(minReach.caption)+' atingiu apenas '+this.fmtNum(minReach.reach)+' contas, '+this.fmtPct((1-minReach.reach/avgReach)*100)+' abaixo da média. Revise horário e gancho inicial.'},
+      {title:'Pior taxa de salvamento', detail:q(minSave.caption)+' salvou só '+this.fmtPct(sRate(minSave))+' do alcance. Faltou valor prático para guardar; adicione um "porquê salvar".'},
+    ];
+    if(highReachLowEng){ notWorked.push({title:'Alcançou muito, engajou pouco', detail:q(highReachLowEng.caption)+' chegou a '+this.fmtNum(highReachLowEng.reach)+' contas mas só '+this.fmtPct(rate(highReachLowEng))+' interagiram. O tema atrai, mas a chamada para ação precisa ser mais clara.'}); }
+    notWorked.push({title:'Abaixo da média de interação', detail:'Posts com taxa inferior a '+this.fmtPct(avgRate)+' puxam a média para baixo. Concentre esforço nos formatos que já performam.'});
+    return { worked, notWorked };
+  }
+}
+</script>
+</body>
+</html>

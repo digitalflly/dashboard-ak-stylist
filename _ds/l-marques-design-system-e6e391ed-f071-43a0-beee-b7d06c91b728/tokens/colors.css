@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Lê Marques — Color
+   Brand law: only three colours are used as primaries.
+     #172219  forest      deep green-black, the signature
+     #1d1d1e  ink         near-black neutral
+     #fffdf7  bone        warm off-white paper
+   Everything else is an opacity step of one of these three.
+   ========================================================================== */
+:root {
+  /* ---- Brand primaries (the only three) ------------------------------- */
+  --forest: #172219;
+  --ink:    #1d1d1e;
+  --bone:   #fffdf7;
+
+  /* ---- Forest tints (alpha over bone) --------------------------------- */
+  --forest-90: rgba(23, 34, 25, 0.90);
+  --forest-70: rgba(23, 34, 25, 0.70);
+  --forest-45: rgba(23, 34, 25, 0.45);
+  --forest-25: rgba(23, 34, 25, 0.25);
+  --forest-12: rgba(23, 34, 25, 0.12);
+  --forest-06: rgba(23, 34, 25, 0.06);
+
+  /* ---- Ink tints ------------------------------------------------------ */
+  --ink-70: rgba(29, 29, 30, 0.70);
+  --ink-45: rgba(29, 29, 30, 0.45);
+  --ink-15: rgba(29, 29, 30, 0.15);
+
+  /* ---- Bone tints (alpha over forest) --------------------------------- */
+  --bone-80: rgba(255, 253, 247, 0.80);
+  --bone-60: rgba(255, 253, 247, 0.60);
+  --bone-35: rgba(255, 253, 247, 0.35);
+  --bone-15: rgba(255, 253, 247, 0.15);
+  --bone-08: rgba(255, 253, 247, 0.08);
+
+  /* ==== Semantic aliases — light (bone paper) ========================== */
+  --surface-page:    var(--bone);
+  --surface-raised:  var(--bone);
+  --surface-sunken:  var(--forest-06);
+  --surface-inverse: var(--forest);
+
+  --text-strong:  var(--forest);
+  --text-body:    var(--forest-90);
+  --text-muted:   var(--forest-45);
+  --text-faint:   var(--forest-25);
+  --text-on-dark: var(--bone);
+
+  --line-hairline: var(--forest-12);
+  --line-strong:   var(--forest-25);
+  --line-contrast: var(--forest);
+
+  --accent:         var(--forest);
+  --accent-text-on: var(--bone);
+}
+
+/* ==== Inverse scope — forest paper ==================================== */
+[data-theme="forest"] {
+  --surface-page:   var(--forest);
+  --surface-raised: var(--forest);
+  --surface-sunken: rgba(0, 0, 0, 0.18);
+  --surface-inverse: var(--bone);
+
+  --text-strong:  var(--bone);
+  --text-body:    var(--bone-80);
+  --text-muted:   var(--bone-60);
+  --text-faint:   var(--bone-35);
+  --text-on-dark: var(--forest);
+
+  --line-hairline: var(--bone-15);
+  --line-strong:   var(--bone-35);
+  --line-contrast: var(--bone);
+
+  --accent:         var(--bone);
+  --accent-text-on: var(--forest);
+}

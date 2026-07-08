@@ -1,0 +1,12 @@
+# Dependências / sistema
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Artefatos de desenvolvimento / preview
+screenshots/
+*.log
+
+# Arquivos internos do editor de design
+.thumbnail
+**/_adherence.oxlintrc.json
