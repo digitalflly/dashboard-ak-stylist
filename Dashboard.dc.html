@@ -934,11 +934,11 @@ class Component extends DCLogic {
 
     // media posts
     const caps = [
-      'Couro curtido em Minas, dobrado à mão','Bastidores do atelier nesta manhã','Nova coleção Voyage — primeiras peças',
-      'O tempo que cada peça precisa','Processo de costura, ponto a ponto','Café & conversa sobre ofício',
-      'Detalhe da fivela em bronze escovado','Da prancha de corte à peça final','Edição limitada — apenas 12 unidades',
-      'Como cuidamos do couro vegetal','Pequenas marcas que contam história','Encomenda especial entregue hoje',
-      'Voltamos com o tom terroso de sempre','Teste de textura para a próxima linha','Um domingo lento no ateliê','Pespontos que levam horas'];
+      'Novo conteúdo AK Stylist','Bastidores do estúdio','Dica de styling do dia',
+      'Antes e depois','Tendência da estação','Passo a passo de produção',
+      'Look do dia','Do briefing ao resultado','Turma nova chegando',
+      'Como montar o guarda-roupa','Detalhes que fazem diferença','Depoimento de aluna',
+      'Consultoria de imagem','Referências de estilo','Making of do ensaio','Rotina de trabalho'];
     const types=['REELS','REELS','CAROUSEL_ALBUM','IMAGE','REELS','CAROUSEL_ALBUM','REELS','IMAGE','CAROUSEL_ALBUM','REELS','REELS','IMAGE','CAROUSEL_ALBUM','REELS','REELS','IMAGE'];
     const media=[]; const mr=this.rng(77731);
     const offsets=[1,3,5]; let k=0;
@@ -966,7 +966,7 @@ class Component extends DCLogic {
     }
 
     return {
-      profile:{ name:'Pri Riciardi', handle:'priscilariciardi', initial:'P', followers:247307 },
+      profile:{ name:'AK Stylist', handle:'akstylist.academy', initial:'AK', followers:0 },
       daily, follows, media,
     };
   }
@@ -1117,7 +1117,7 @@ class Component extends DCLogic {
   /* ============ CAPAS DURÁVEIS (data URL no cache) ============ */
   // demografia lifetime (idade/gênero/cidade) — cache 7 dias
   async fetchDemographics(force){
-    const KEY=this.WINDSOR_KEY, H=(this.HANDLE||'priscilariciardi');
+    const KEY=this.WINDSOR_KEY, H=(this.HANDLE||'akstylist.academy');
     const CK='igdemo_'+H;
     try{ const c=JSON.parse(localStorage.getItem(CK)||'null'); if(!force && c && c.savedAt && (Date.now()-c.savedAt)<7*864e5 && c.demo){ this.setState({demo:c.demo}); return; } }catch(e){}
     const fd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
@@ -1146,10 +1146,17 @@ class Component extends DCLogic {
       return false;
     }
   }
+  // proxy com CORS p/ imagens do CDN do Instagram (evita bloqueio por referer/expiração e permite embutir)
+  imgProxy(url){
+    if(!url || !/^https?:/.test(url)) return url||'';
+    if(url.indexOf('images.weserv.nl')>-1) return url;
+    return 'https://images.weserv.nl/?url='+encodeURIComponent(url.replace(/^https?:\/\//,''));
+  }
   // baixa uma imagem e devolve um JPEG reduzido como data URL (ou null)
   embedCover(url){
     return new Promise(res=>{
       if(!url || !/^https?:/.test(url)) return res(null);
+      url=this.imgProxy(url);
       const img=new Image(); img.crossOrigin='anonymous';
       let done=false; const finish=(v)=>{ if(!done){ done=true; res(v); } };
       const to=setTimeout(()=>finish(null), 12000);
@@ -1449,7 +1456,7 @@ class Component extends DCLogic {
       const dayRow=this.dailyAt(p.ts);
       const taps = dayRow? dayRow.taps : null;
       const baseBg=this.COVER_BG[p.coverIdx%this.COVER_BG.length];
-      const src = p.coverData || p.thumb || p.cover;
+      const src = p.coverData || this.imgProxy(p.thumb || p.cover);
       const coverStyle = src
         ? `position:relative; height:150px; display:flex; align-items:center; justify-content:center; background:linear-gradient(rgba(23,34,25,0.12), rgba(23,34,25,0.40)), center/cover no-repeat url("${src}"), ${baseBg};`
         : `position:relative; height:150px; display:flex; align-items:center; justify-content:center; background:${baseBg}; background-image:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.10), transparent 60%);`;
@@ -1739,7 +1746,7 @@ class Component extends DCLogic {
     const hAd={}, arAd={}, hSet={}, arSet={};
     sortCols.forEach(kk=>{ hAd[kk]=()=>this.toggleSort('adSort',kk); arAd[kk]=sArrow(S.adSort,kk); hSet[kk]=()=>this.toggleSort('adsetSort',kk); arSet[kk]=sArrow(S.adsetSort,kk); });
     const investAds=adsSorted.slice(0,12).map((a,i)=>({ idx:i, name:a.name, perma:a.perma||'', hasLink:!!a.perma, noLink:!a.perma,
-      thumbStyle: a.thumb? `width:42px; height:42px; flex:none; border-radius:5px; background:#172219 center/cover no-repeat url("${a.thumb}");`
+      thumbStyle: a.thumb? `width:42px; height:42px; flex:none; border-radius:5px; background:#172219 center/cover no-repeat url("${this.imgProxy(a.thumb)}");`
         : `width:42px; height:42px; flex:none; border-radius:5px; background:linear-gradient(135deg, #172219, #2C3A2E);`,
       impr:this.fmtNum(a.impressions),
       ctr:this.fmtPct(a.impressions? a.linkClicks/a.impressions*100 : 0),
