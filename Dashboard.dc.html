@@ -453,7 +453,7 @@
           <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">{{ investEyebrow }}</div>
           <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-bottom:16px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
           <sc-for list="{{ investStats }}" as="st" hint-placeholder-count="5">
             <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
               <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ st.label }}</div>
@@ -699,7 +699,7 @@ class Component extends DCLogic {
     };
     // Como cada bucket se comporta no funil de investimento.
     this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', perfil:'profile' };
-    this.ADS_CKEY = 'akAdsCampaigns:v3';
+    this.ADS_CKEY = 'akAdsCampaigns:v4';
     this.ADS_SEED_FROM = '2025-01-01';
     this.HAS_SALES_SHEET = false; // AK não tem planilha Eduzz — abas de venda mostram só o funil de anúncios
     this.SALES_SHEETS = {};
@@ -1194,7 +1194,7 @@ class Component extends DCLogic {
     this.setState({adsLoading:true, adsError:''});
     try{
       const key=this.WINDSOR_KEY;
-      const fields='account_id,campaign,adset_name,ad_name,thumbnail_url,instagram_permalink_url,date,impressions,reach,inline_link_clicks,actions_landing_page_view,actions_lead,actions_purchase,actions_initiate_checkout,inline_post_engagement,actions_video_view,actions_post_reaction,actions_onsite_conversion_post_save,actions_post,spend';
+      const fields='account_id,campaign,adset_name,ad_name,thumbnail_url,instagram_permalink_url,date,impressions,reach,inline_link_clicks,actions_landing_page_view,actions_lead,actions_purchase,action_values_purchase,actions_initiate_checkout,inline_post_engagement,actions_video_view,actions_post_reaction,actions_onsite_conversion_post_save,actions_post,spend';
       const num=(v)=>(v==null||v==='')?0:(+v||0);
       const acct=this.ADS_ACCOUNT_ID;
       const ymd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
@@ -1211,8 +1211,8 @@ class Component extends DCLogic {
         const d=dnorm(x.date), ad=x.ad_name||'(sem nome)';
         const camp=x.campaign||'';
         ps.forEach(p=>{ const id=p+'|'+d+'|'+ad+'|'+camp;
-          if(!store[id]) store[id]={ c:p, d, ad, camp, adset:x.adset_name||'(sem conjunto)', thumb:x.thumbnail_url||'', perma:x.instagram_permalink_url||'', impr:0,reach:0,clk:0,lpv:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0,shr:0 };
-          const s=store[id]; s.impr+=num(x.impressions); s.reach+=num(x.reach); s.clk+=num(x.inline_link_clicks); s.lpv+=num(x.actions_landing_page_view); s.leads+=num(x.actions_lead); s.purch+=num(x.actions_purchase); s.chk+=num(x.actions_initiate_checkout); s.spend+=num(x.spend); s.eng+=num(x.inline_post_engagement); s.vv+=num(x.actions_video_view); s.reac+=num(x.actions_post_reaction); s.save+=num(x.actions_onsite_conversion_post_save); s.shr+=num(x.actions_post); if(!s.thumb&&x.thumbnail_url) s.thumb=x.thumbnail_url; if(!s.perma&&x.instagram_permalink_url) s.perma=x.instagram_permalink_url; }); }); };
+          if(!store[id]) store[id]={ c:p, d, ad, camp, adset:x.adset_name||'(sem conjunto)', thumb:x.thumbnail_url||'', perma:x.instagram_permalink_url||'', impr:0,reach:0,clk:0,lpv:0,leads:0,purch:0,pv:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0,shr:0 };
+          const s=store[id]; s.impr+=num(x.impressions); s.reach+=num(x.reach); s.clk+=num(x.inline_link_clicks); s.lpv+=num(x.actions_landing_page_view); s.leads+=num(x.actions_lead); s.purch+=num(x.actions_purchase); s.pv+=num(x.action_values_purchase); s.chk+=num(x.actions_initiate_checkout); s.spend+=num(x.spend); s.eng+=num(x.inline_post_engagement); s.vv+=num(x.actions_video_view); s.reac+=num(x.actions_post_reaction); s.save+=num(x.actions_onsite_conversion_post_save); s.shr+=num(x.actions_post); if(!s.thumb&&x.thumbnail_url) s.thumb=x.thumbnail_url; if(!s.perma&&x.instagram_permalink_url) s.perma=x.instagram_permalink_url; }); }); };
       const today=new Date(); const todayStr=ymd(today);
       let store={}, cached=null;
       try{ cached=JSON.parse(localStorage.getItem(this.ADS_CKEY)||'null'); }catch(e){}
@@ -1640,10 +1640,10 @@ class Component extends DCLogic {
     const kind = this.CAMPAIGN_KIND[key] || 'sales';
     const byAd={}, byAdset={};
     rows.forEach(r=>{
-      if(!byAd[r.ad]) byAd[r.ad]={ name:r.ad, thumb:'', perma:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
-      const a=byAd[r.ad]; a.impressions+=r.impr; a.reach+=r.reach; a.linkClicks+=r.clk; a.lpViews+=r.lpv; a.leads+=r.leads; a.purch+=(r.purch||0); a.chk+=(r.chk||0); a.spend+=r.spend; a.eng+=(r.eng||0); a.vv+=(r.vv||0); a.reac+=(r.reac||0); a.save+=(r.save||0); if(!a.thumb&&r.thumb) a.thumb=r.thumb; if(!a.perma&&r.perma) a.perma=r.perma;
-      if(!byAdset[r.adset]) byAdset[r.adset]={ name:r.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
-      const s=byAdset[r.adset]; s.impressions+=r.impr; s.reach+=r.reach; s.linkClicks+=r.clk; s.lpViews+=r.lpv; s.leads+=r.leads; s.purch+=(r.purch||0); s.chk+=(r.chk||0); s.spend+=r.spend; s.eng+=(r.eng||0); s.vv+=(r.vv||0); s.reac+=(r.reac||0); s.save+=(r.save||0);
+      if(!byAd[r.ad]) byAd[r.ad]={ name:r.ad, thumb:'', perma:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,pv:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
+      const a=byAd[r.ad]; a.impressions+=r.impr; a.reach+=r.reach; a.linkClicks+=r.clk; a.lpViews+=r.lpv; a.leads+=r.leads; a.purch+=(r.purch||0); a.pv+=(r.pv||0); a.chk+=(r.chk||0); a.spend+=r.spend; a.eng+=(r.eng||0); a.vv+=(r.vv||0); a.reac+=(r.reac||0); a.save+=(r.save||0); if(!a.thumb&&r.thumb) a.thumb=r.thumb; if(!a.perma&&r.perma) a.perma=r.perma;
+      if(!byAdset[r.adset]) byAdset[r.adset]={ name:r.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,pv:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
+      const s=byAdset[r.adset]; s.impressions+=r.impr; s.reach+=r.reach; s.linkClicks+=r.clk; s.lpViews+=r.lpv; s.leads+=r.leads; s.purch+=(r.purch||0); s.pv+=(r.pv||0); s.chk+=(r.chk||0); s.spend+=r.spend; s.eng+=(r.eng||0); s.vv+=(r.vv||0); s.reac+=(r.reac||0); s.save+=(r.save||0);
     });
     const ads=Object.values(byAd).sort((a,b)=>b.impressions-a.impressions);
     const adsetsArr=Object.values(byAdset).sort((a,b)=>b.impressions-a.impressions);
@@ -1662,6 +1662,8 @@ class Component extends DCLogic {
     const engRate=impressoes? inter/impressoes*100 : 0;
     const custoReprod=reprod? investido/reprod : 0;
     const vendas=sum('purch');
+    const faturamento=sum('pv');
+    const roas=investido? faturamento/investido : 0;
     const checkout=sum('chk');
     const custoChk=checkout? investido/checkout : 0;
     const custoVenda=vendas? investido/vendas : 0;
@@ -1718,6 +1720,7 @@ class Component extends DCLogic {
         { label:'Custo por clique', value:money2(cpc) },
         { label:'Connect rate', value:this.fmtPct(connectRate) },
         { label:'Custo por venda', value:money2(custoVenda) },
+        { label:'ROAS', value: roas? roas.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'x' : '—' },
       ];
       colAds=['Cliques no link','Visualização da página','Connect rate','Vendas do gerenciador'];
       colSets=['Cliques','Visu. pág.','Connect','Vendas'];
