@@ -54,6 +54,35 @@
     .b-select:focus{ outline:none; border-color:var(--wine-800); box-shadow:0 0 0 3px var(--accent-soft); }
     .b-avatar{ display:inline-flex; align-items:center; justify-content:center; border-radius:50%; overflow:hidden; }
     .b-avatar--lg{ width:52px; height:52px; }
+    /* ============ RESPONSIVO (celular / tablet / desktop) ============ */
+    @media (max-width: 1024px){
+      .dash [style*="repeat(8, 1fr)"]{ grid-template-columns:repeat(4, 1fr) !important; }
+      .dash [style*="repeat(6, 1fr)"]{ grid-template-columns:repeat(3, 1fr) !important; }
+      .dash [style*="repeat(4, 1fr)"]{ grid-template-columns:repeat(2, 1fr) !important; }
+      .dash [style*="repeat(3, 1fr)"]{ grid-template-columns:repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 720px){
+      .dash header [style*="max-width:1280px"]{ padding-left:16px !important; padding-right:16px !important; }
+      .dash [style*="max-width:1280px"]{ padding-left:16px !important; padding-right:16px !important; }
+      .dash header > div:first-child{ flex-wrap:wrap; row-gap:12px; }
+      .dash [style*="repeat(8, 1fr)"]{ grid-template-columns:repeat(2, 1fr) !important; }
+      .dash [style*="repeat(6, 1fr)"]{ grid-template-columns:repeat(2, 1fr) !important; }
+      .dash [style*="repeat(4, 1fr)"]{ grid-template-columns:repeat(2, 1fr) !important; }
+      .dash [style*="repeat(3, 1fr)"]{ grid-template-columns:1fr !important; }
+      .dash [style*="grid-template-columns:1fr 1fr"]{ grid-template-columns:1fr !important; }
+      .dash [style*="grid-template-columns: 1fr 1fr"]{ grid-template-columns:1fr !important; }
+      /* tabelas largas rolam na horizontal dentro do card */
+      .dash .b-card{ overflow-x:auto; }
+      .dash table{ min-width:560px; }
+      /* filtros e barras de topo quebram linha */
+      .dash nav{ flex-wrap:wrap; }
+    }
+    @media (max-width: 460px){
+      .dash [style*="repeat(8, 1fr)"],
+      .dash [style*="repeat(6, 1fr)"],
+      .dash [style*="repeat(4, 1fr)"]{ grid-template-columns:1fr 1fr !important; }
+      .b-avatar--lg{ width:42px; height:42px; }
+    }
   </style>
 </helmet>
 
@@ -699,7 +728,7 @@ class Component extends DCLogic {
     };
     // Como cada bucket se comporta no funil de investimento.
     this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', perfil:'profile' };
-    this.ADS_CKEY = 'akAdsCampaigns:v4';
+    this.ADS_CKEY = 'akAdsCampaigns:v5';
     this.ADS_SEED_FROM = '2025-01-01';
     this.HAS_SALES_SHEET = false; // AK não tem planilha Eduzz — abas de venda mostram só o funil de anúncios
     this.SALES_SHEETS = {};
@@ -1194,7 +1223,7 @@ class Component extends DCLogic {
     this.setState({adsLoading:true, adsError:''});
     try{
       const key=this.WINDSOR_KEY;
-      const fields='account_id,campaign,adset_name,ad_name,thumbnail_url,instagram_permalink_url,date,impressions,reach,inline_link_clicks,actions_landing_page_view,actions_lead,actions_purchase,action_values_purchase,actions_initiate_checkout,inline_post_engagement,actions_video_view,actions_post_reaction,actions_onsite_conversion_post_save,actions_post,spend';
+      const fields='account_id,campaign,campaign_objective,adset_name,ad_name,thumbnail_url,instagram_permalink_url,date,impressions,reach,inline_link_clicks,actions_landing_page_view,actions_lead,actions_purchase,action_values_purchase,actions_initiate_checkout,inline_post_engagement,actions_video_view,actions_post_reaction,actions_onsite_conversion_post_save,actions_post,spend';
       const num=(v)=>(v==null||v==='')?0:(+v||0);
       const acct=this.ADS_ACCOUNT_ID;
       const ymd=(d)=>this.ymd(new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())));
@@ -1205,9 +1234,18 @@ class Component extends DCLogic {
         const j=await r.json(); if(j.error) throw new Error(String(j.error).slice(0,120));
         return (j.data||[]).filter(x=>String(x.account_id||'').replace(/\D/g,'')===acct);
       };
-      // uma campanha pode casar com vários baldes (ex.: [ENGAJAMENTO][CICLO-LEVE] entra em ciclo E engajamento)
-      const prodsOf=(camp)=>{ const out=[]; for(const k of Object.keys(this.ADS_CAMPAIGN_MATCH)){ if(this.ADS_CAMPAIGN_MATCH[k].test(camp||'')) out.push(k); } return out; };
-      const ingest=(store, rows)=>{ rows.forEach(x=>{ const ps=prodsOf(x.campaign); if(!ps.length) return;
+      // Classificação AUTOMÁTICA pelo objetivo do Facebook (robusta a nomes novos):
+      //  OUTCOME_SALES  -> aba Vendas, produto = primeiro [TOKEN] do nome (sdm/sfc/tdd/novos)
+      //  OUTCOME_LEADS  -> aba Leads (qualquer produto)
+      //  perfil/visita/aumento de base no nome -> aba Novos Seguidores
+      //  demais objetivos (awareness, engajamento, msg, direct) -> ignorados
+      const firstTok=(camp)=>{ const m=String(camp||'').match(/^\s*\[([^\]]+)\]/); return m? m[1].trim().toLowerCase().replace(/\s+/g,'') : null; };
+      const prodsOf=(camp,obj)=>{ const c=camp||''; const o=String(obj||'').toUpperCase();
+        if(o==='OUTCOME_LEADS') return ['leads'];
+        if(o==='OUTCOME_SALES'){ const t=firstTok(c); return t? [t] : []; }
+        if(/perfil|visita|aumento de base/i.test(c)) return ['perfil'];
+        return []; };
+      const ingest=(store, rows)=>{ rows.forEach(x=>{ const ps=prodsOf(x.campaign, x.campaign_objective); if(!ps.length) return;
         const d=dnorm(x.date), ad=x.ad_name||'(sem nome)';
         const camp=x.campaign||'';
         ps.forEach(p=>{ const id=p+'|'+d+'|'+ad+'|'+camp;
@@ -1226,10 +1264,9 @@ class Component extends DCLogic {
       }
       const rowsArr=Object.values(store);
       try{ localStorage.setItem(this.ADS_CKEY, JSON.stringify({ through:todayStr, rows:rowsArr })); }catch(e){}
-      // agrega por produto → anúncios e conjuntos
+      // agrega por produto → anúncios e conjuntos (baldes criados sob demanda)
       const ads={}, adsets={};
-      Object.keys(this.ADS_CAMPAIGN_MATCH).forEach(p=>{ ads[p]={}; adsets[p]={}; });
-      rowsArr.forEach(s=>{ const p=s.c; if(!ads[p]) return;
+      rowsArr.forEach(s=>{ const p=s.c; if(!ads[p]){ ads[p]={}; adsets[p]={}; }
         if(!ads[p][s.ad]) ads[p][s.ad]={ name:s.ad, thumb:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,spend:0 };
         const a=ads[p][s.ad]; a.impressions+=s.impr; a.reach+=s.reach; a.linkClicks+=s.clk; a.lpViews+=s.lpv; a.leads+=s.leads; a.spend+=s.spend; if(!a.thumb&&s.thumb) a.thumb=s.thumb;
         if(!adsets[p][s.adset]) adsets[p][s.adset]={ name:s.adset, impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,spend:0 };
@@ -1248,6 +1285,17 @@ class Component extends DCLogic {
   parseRowDate(s){ const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; const m2=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); return m2? m2[0]:null; }
   setCampaign(key){ this.setState({campaign:key, campFilter:'all'}); }
   setProduct(key){ this.setState({product:key}); }
+  // Como cada bucket se comporta no funil (dinâmico: qualquer produto de venda entra como 'sales').
+  kindOf(key){ if(key==='leads') return 'leads'; if(key==='perfil') return 'profile'; return 'sales'; }
+  // Produtos de venda existentes nos dados (auto-detectados; SDM/SFC/TDD primeiro, novos em seguida).
+  salesProductKeys(){
+    const rows=this.state.adRows||[]; const set={};
+    rows.forEach(r=>{ if(this.kindOf(r.c)==='sales') set[r.c]=true; });
+    const known=['sdm','sfc','tdd'];
+    const extra=Object.keys(set).filter(k=>known.indexOf(k)<0).sort();
+    const ordered=known.filter(k=>set[k]).concat(extra);
+    return ordered.length? ordered : ['sdm'];
+  }
   setCampFilter(v){ this.setState({campFilter:v}); }
   // Opções do filtro de campanhas para um objetivo (leads / perfil): nomes únicos no período.
   campFilterProps(key){
@@ -1589,8 +1637,10 @@ class Component extends DCLogic {
   candVals(){
     if(this.state.campaign==='perfil') return this.seguidoresInfo();
     const S=this.state;
-    const effKey = S.campaign==='vendas' ? (S.product||'sdm') : S.campaign;
-    const products = this.PRODUCTS.map(p=>({ label:p.name, active:p.key===(S.product||'sdm'), inactive:p.key!==(S.product||'sdm'), onClick:()=>this.setProduct(p.key) }));
+    const salesKeys = this.salesProductKeys();
+    const curProd = (salesKeys.indexOf(S.product)>=0? S.product : salesKeys[0]);
+    const effKey = S.campaign==='vendas' ? curProd : S.campaign;
+    const products = salesKeys.map(k=>({ label:k.toUpperCase(), active:k===curProd, inactive:k!==curProd, onClick:()=>this.setProduct(k) }));
     const showProductFilter = S.campaign==='vendas';
     const campProps = showProductFilter ? {showCampFilter:false, campOptions:[], campFilterValue:'all', onCampFilter:()=>{}} : this.campFilterProps(effKey);
     const funnelTabs=this.CAMPAIGNS.map(f=>({ label:f.name, active:f.key===S.campaign, inactive:f.key!==S.campaign,
@@ -1629,7 +1679,7 @@ class Component extends DCLogic {
   // Investimento da campanha — Facebook Ads (por produto: WA/Reset/Ciclo/Essência).
   investFunnel(key, total){
     if(key==='perfil') return this.perfilFunnel();
-    if(!this.ADS_CAMPAIGN_MATCH[key]){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', adsStatus:'' }; }
+    if(key!=='leads' && (!key || key==='vendas')){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', adsStatus:'' }; }
     const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     const S=this.state;
     // respeita os filtros de mês / intervalo de datas da página
@@ -1637,7 +1687,7 @@ class Component extends DCLogic {
     const cf=S.campFilter||'all';
     const rows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && (cf==='all' || r.camp===cf));
     const isEng = false;
-    const kind = this.CAMPAIGN_KIND[key] || 'sales';
+    const kind = this.kindOf(key);
     const byAd={}, byAdset={};
     rows.forEach(r=>{
       if(!byAd[r.ad]) byAd[r.ad]={ name:r.ad, thumb:'', perma:'', impressions:0,reach:0,linkClicks:0,lpViews:0,leads:0,purch:0,pv:0,chk:0,spend:0, eng:0,vv:0,reac:0,save:0 };
@@ -1647,8 +1697,7 @@ class Component extends DCLogic {
     });
     const ads=Object.values(byAd).sort((a,b)=>b.impressions-a.impressions);
     const adsetsArr=Object.values(byAdset).sort((a,b)=>b.impressions-a.impressions);
-    const prod=this.CAMPAIGNS.find(c=>c.key===key) || this.PRODUCTS.find(c=>c.key===key);
-    const investEyebrow = (this.CAMPAIGN_KIND[key]==='sales') ? 'Vendas' : (prod? prod.name : '');
+    const investEyebrow = (this.kindOf(key)==='sales') ? 'Vendas' : (key==='leads'?'Leads':(key==='perfil'?'Novos seguidores':''));
     const hasReal = ads.length>0;
     const sum=(f)=>ads.reduce((a,x)=>a+(x[f]||0),0);
     const alcance=sum('reach'), impressoes=sum('impressions'), cliques=sum('linkClicks'),
