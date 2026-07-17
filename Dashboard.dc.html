@@ -44,6 +44,8 @@
     /* dashboard surfaces re-skinned on lê marques tokens */
     .b-card{ background:var(--surface-card); border:1px solid var(--border-soft); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); }
     .b-card--bare{ background:transparent; border:1px dashed var(--border-strong); box-shadow:none; }
+    .budget-tt-wrap:hover .budget-tt{ opacity:1 !important; }
+    .budget-tt, .budget-tt *{ text-transform:none !important; }
     .b-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 8px; font-family:var(--font-sans); font-weight:600; font-size:11px; letter-spacing:0.04em; border-radius:var(--radius-pill); background:var(--accent-soft); color:var(--wine-800); }
     .b-badge--warning{ background:#ecebe3; color:var(--forest); }
     .b-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 24px; font-family:var(--font-sans); font-weight:500; font-size:12px; letter-spacing:0.2em; text-transform:uppercase; border-radius:var(--radius-xs); border:1px solid transparent; cursor:pointer; transition:var(--transition-base); }
@@ -401,35 +403,60 @@
             </sc-if>
           </sc-for>
         </div>
-        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-          <sc-if value="{{ showProductFilter }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex; gap:8px; align-items:center;">
-            <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:2px;">Produtos</span>
-            <sc-for list="{{ products }}" as="p" hint-placeholder-count="3">
-              <sc-if value="{{ p.active }}" hint-placeholder-val="{{ true }}">
-                <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid #172219; background:#172219; color:var(--cream); transition:var(--transition-base);">{{ p.label }}</button>
-              </sc-if>
-              <sc-if value="{{ p.inactive }}" hint-placeholder-val="{{ false }}">
-                <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted); transition:var(--transition-base);">{{ p.label }}</button>
-              </sc-if>
-            </sc-for>
-          </div>
-          </sc-if>
-          <sc-if value="{{ showCampFilter }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Campanha</span>
-            <select data-keepcase="1" onChange="{{ onCampFilter }}" value="{{ campFilterValue }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:7px 12px; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-strong); max-width:340px;">
-              <sc-for list="{{ campOptions }}" as="o" hint-placeholder-count="3">
-                <option value="{{ o.value }}">{{ o.label }}</option>
-              </sc-for>
-            </select>
-          </div>
-          </sc-if>
+        <sc-if value="{{ showProductFilter }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:2px;">Produtos</span>
+          <sc-for list="{{ products }}" as="p" hint-placeholder-count="3">
+            <sc-if value="{{ p.active }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid #172219; background:#172219; color:var(--cream); transition:var(--transition-base);">{{ p.label }}</button>
+            </sc-if>
+            <sc-if value="{{ p.inactive }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted); transition:var(--transition-base);">{{ p.label }}</button>
+            </sc-if>
+          </sc-for>
         </div>
+        </sc-if>
       </div>
 
       <sc-if value="{{ candReady }}" hint-placeholder-val="{{ false }}">
       <div>
+        <sc-if value="{{ signupsShow }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ budgetBar.show }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:18px 0 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <span style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted);">Orçamento de tráfego</span>
+            <span data-keepcase="1" style="font-size:12px; font-weight:600; color:var(--text-strong);">{{ budgetBar.pctLabel }} de {{ budgetBar.budget }}</span>
+          </div>
+          <div class="budget-tt-wrap" style="position:relative; cursor:default;">
+            <div style="height:12px; border-radius:999px; background:var(--border-soft); overflow:hidden;">
+              <div style="height:100%; background:#172219; border-radius:999px; transition:width .3s ease; width:{{ budgetBar.pctW }}%;"></div>
+            </div>
+            <div class="budget-tt" style="position:absolute; bottom:calc(100% + 9px); left:50%; transform:translateX(-50%); background:#172219; border:1px solid #2C3A2E; border-radius:8px; padding:9px 12px; font-family:'Neue Montreal', sans-serif; font-size:12px; color:#D8DCD4; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .15s ease; box-shadow:0 6px 18px rgba(0,0,0,0.2); z-index:6;">
+              <div data-keepcase="1" style="color:#FFFDF7; font-weight:600; margin-bottom:4px;">Orçamento de tráfego</div>
+              <div data-keepcase="1" style="margin-bottom:2px;">Investido: <span data-keepcase="1" style="color:#FFFDF7; font-weight:600;">{{ budgetBar.invested }}</span></div>
+              <div data-keepcase="1">Restante: <span data-keepcase="1" style="color:#FFFDF7; font-weight:600;">{{ budgetBar.remaining }}</span></div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin:0 0 16px;">
+          <sc-for list="{{ signupsKpis }}" as="k" hint-placeholder-count="3">
+            <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
+              <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ k.label }}</div>
+              <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em;">{{ k.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="b-card" style="padding:22px 24px; margin-bottom:16px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia</div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15;">Cadastros por dia</div>
+            <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ signupsStatus }}</span>
+          </div>
+          <div style="height:230px; position:relative;"><canvas id="signups-daily"></canvas></div>
+        </div>
+        </sc-if>
+
         <sc-if value="{{ salesShow }}" hint-placeholder-val="{{ false }}">
         <div style="margin:18px 0 16px;">
           <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Vendas</div>
@@ -478,9 +505,36 @@
         </sc-if>
 
         <sc-if value="{{ investShow }}" hint-placeholder-val="{{ false }}">
-        <div style="border-top:1px solid var(--border-soft); margin:26px 0 18px; padding-top:24px;">
-          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">{{ investEyebrow }}</div>
-          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
+        <div style="border-top:1px solid var(--border-soft); margin:26px 0 18px; padding-top:24px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">{{ investEyebrow }}</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+            <sc-if value="{{ showCampFilter }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Campanha</span>
+              <select data-keepcase="1" onChange="{{ onCampFilter }}" value="{{ campFilterValue }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:7px 12px; border-radius:6px; border:1px solid var(--border-strong); background:transparent; color:var(--text-strong); max-width:340px;">
+                <sc-for list="{{ campOptions }}" as="o" hint-placeholder-count="3">
+                  <option value="{{ o.value }}">{{ o.label }}</option>
+                </sc-for>
+              </select>
+            </div>
+            </sc-if>
+            <sc-if value="{{ showAudFilter }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span style="font-size:10px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-right:4px;">Público</span>
+              <sc-for list="{{ audFilter }}" as="p" hint-placeholder-count="3">
+                <sc-if value="{{ p.active }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid #172219; background:#172219; color:var(--cream); transition:var(--transition-base);">{{ p.label }}</button>
+                </sc-if>
+                <sc-if value="{{ p.inactive }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ p.onClick }}" style="font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer; padding:6px 14px; border-radius:999px; border:1px solid var(--border-strong); background:transparent; color:var(--text-muted); transition:var(--transition-base);">{{ p.label }}</button>
+                </sc-if>
+              </sc-for>
+            </div>
+            </sc-if>
+          </div>
         </div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
           <sc-for list="{{ investStats }}" as="st" hint-placeholder-count="5">
@@ -698,7 +752,12 @@ class Component extends DCLogic {
       dormant: false,
       campaign: 'vendas',
       product: 'sdm',
+      leadsProduct: 'all',
+      andaProduct: 'all',
+      signups: null,
+      signupsError: '',
       campFilter: 'all',
+      andaAud: 'all',
       adSort: {key:'impr', dir:-1},
       adsetSort: {key:'impr', dir:-1},
       pubSort: {key:'spend', dir:-1},
@@ -727,8 +786,8 @@ class Component extends DCLogic {
       perfil: /tr[aá]fego para perfil|\[VISITA\]|aumento de base/i,
     };
     // Como cada bucket se comporta no funil de investimento.
-    this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', perfil:'profile' };
-    this.ADS_CKEY = 'akAdsCampaigns:v5';
+    this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', andamento:'leads', perfil:'profile' };
+    this.ADS_CKEY = 'akAdsCampaigns:v7';
     this.ADS_SEED_FROM = '2025-01-01';
     this.HAS_SALES_SHEET = false; // AK não tem planilha Eduzz — abas de venda mostram só o funil de anúncios
     this.SALES_SHEETS = {};
@@ -739,7 +798,10 @@ class Component extends DCLogic {
       { key:'vendas', name:'Vendas' },
       { key:'leads', name:'Leads' },
       { key:'perfil', name:'Novos Seguidores' },
+      { key:'andamento', name:'Em andamento - CEF' },
     ];
+    // Cadastros ao vivo (Google Sheet) para a aba "Em andamento".
+    this.SIGNUPS_SHEET = { id:'1m_XMiUkpu6Ons124EbzU4rKj8lUtiOEWJMuH3GPPGso', gid:'1859489336' };
     // Sub-filtro "Produtos" dentro da aba Vendas (SDM / SFC / TDD).
     this.PRODUCTS = [
       { key:'sdm', name:'SDM' },
@@ -1214,7 +1276,21 @@ class Component extends DCLogic {
   }
 
   /* ============ CHARTS ============ */
-  componentDidMount(){ this.drawCharts(); if(this.TEMPLATE_MODE){ this.loadExampleData(); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(); }
+  componentDidMount(){ this.drawCharts(); if(this.TEMPLATE_MODE){ this.loadExampleData(); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(); this.loadSignups(); }
+
+  // Cadastros ao vivo (Google Sheet) — cada linha = 1 cadastro; agregamos por dia.
+  async loadSignups(){
+    try{
+      const {id,gid}=this.SIGNUPS_SHEET;
+      const url='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&gid='+gid+'&_cb='+Date.now();
+      const txt=await (await fetch(url,{cache:'no-store'})).text();
+      const rows=this.parseCSV(txt); const header=rows.shift()||[];
+      let di=header.findIndex(h=>/data\s*\/\s*hora|data|hora/i.test(h)); if(di<0) di=3;
+      const out=[];
+      rows.forEach(r=>{ const raw=r[di]||''; const m=String(raw).match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m){ const hm=String(raw).match(/\b(\d{1,2}):(\d{2})/); out.push({ date:m[3]+'-'+m[2]+'-'+m[1], hour: hm? parseInt(hm[1],10) : null }); } });
+      this.setState({signups:out, signupsError:''});
+    }catch(e){ this.setState({signupsError:(e&&e.message)||'Falha ao ler cadastros.'}); }
+  }
 
   // Facebook Ads (Windsor) — campanhas por produto (WA/Reset/Ciclo/Essência).
   // Semeia desde mai/2025 (cache) e depois só re-busca os 3 dias anteriores à atualização.
@@ -1243,7 +1319,8 @@ class Component extends DCLogic {
       const prodsOf=(camp,obj)=>{ const c=camp||''; const o=String(obj||'').toUpperCase();
         if(o==='OUTCOME_LEADS') return ['leads'];
         if(o==='OUTCOME_SALES'){ const t=firstTok(c); return t? [t] : []; }
-        if(/perfil|visita|aumento de base/i.test(c)) return ['perfil'];
+        if(o==='OUTCOME_TRAFFIC') return ['perfil'];
+        if(/perfil|visita|aumento de base|novos seguidores/i.test(c)) return ['perfil'];
         return []; };
       const ingest=(store, rows)=>{ rows.forEach(x=>{ const ps=prodsOf(x.campaign, x.campaign_objective); if(!ps.length) return;
         const d=dnorm(x.date), ad=x.ad_name||'(sem nome)';
@@ -1297,11 +1374,31 @@ class Component extends DCLogic {
     return ordered.length? ordered : ['sdm'];
   }
   setCampFilter(v){ this.setState({campFilter:v}); }
-  // Opções do filtro de campanhas para um objetivo (leads / perfil): nomes únicos no período.
-  campFilterProps(key){
+  setLeadsProduct(k){ this.setState({leadsProduct:k}); }
+  // Classifica o público da campanha pelos tokens do nome: [F]/[FRIO] = frio; [Q]/[QUENTE]/[M/Q] = quente.
+  audKind(camp){
+    const toks=(String(camp||'').match(/\[([^\]]+)\]/g)||[]).map(t=>t.slice(1,-1).trim().toUpperCase());
+    for(const t of toks){
+      if(t==='F' || t==='FRIO') return 'frio';
+      if(t==='Q' || t==='QUENTE' || t==='M/Q' || t==='MQ' || t.indexOf('QUENTE')>=0) return 'quente';
+    }
+    return null;
+  }
+  // token do produto = primeiro [] do nome da campanha
+  prodTok(camp){ const m=String(camp||'').match(/^\s*\[([^\]]+)\]/); return m? m[1].trim().toLowerCase().replace(/\s+/g,'') : null; }
+  // produtos existentes entre as campanhas de leads (no período), com 'all' na frente
+  leadsProductKeys(){
     const S=this.state;
     const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
-    const names=[...new Set((S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && r.camp).map(r=>r.camp))].sort();
+    const toks=[...new Set((S.adRows||[]).filter(r=> r.c==='leads' && inRange(r.d)).map(r=>this.prodTok(r.camp)).filter(Boolean))].sort();
+    return ['all'].concat(toks);
+  }
+  // Opções do filtro de campanhas para um objetivo (leads / perfil): nomes únicos no período.
+  campFilterProps(key, prodTok){
+    const S=this.state;
+    const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+    const lp = prodTok && prodTok!=='all' ? prodTok : null;
+    const names=[...new Set((S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && r.camp && (!lp || this.prodTok(r.camp)===lp)).map(r=>r.camp))].sort();
     const cf=S.campFilter||'all';
     const campOptions=[{value:'all', label:'Todas as campanhas'}].concat(names.map(n=>({value:n, label:n})));
     return {
@@ -1338,16 +1435,17 @@ class Component extends DCLogic {
     opts=opts||{};
     return {
       type:'line',
-      data:{ labels, datasets: datasets.map(d=>({ label:d.label, data:d.data, borderColor:d.color, backgroundColor:d.fillColor||d.color, tension:0.35, borderWidth:2.2, pointRadius:d.data.length>14?0:2.5, pointHoverRadius:4, fill: d.fill||false, spanGaps:true })) },
+      data:{ labels, datasets: datasets.map(d=>({ label:d.label, data:d.data, borderColor:d.color, backgroundColor:d.fillColor||d.color, tension:0.35, borderWidth:2.2, pointRadius:d.data.length>14?0:2.5, pointHoverRadius:4, fill: d.fill||false, spanGaps:true, yAxisID: d.axis||'y', borderDash: d.dash||[] })) },
       options:{
         responsive:true, maintainAspectRatio:false,
         interaction:{ mode:'index', intersect:false },
         plugins:{ legend:{ display: datasets.length>1, position:'bottom', labels:{ boxWidth:10, boxHeight:10, usePointStyle:true, font:{ family:'Neue Montreal', size:11 }, color:'#6B746A' } },
-          tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
-            callbacks: opts.pct? { label:(c)=> c.dataset.label+': '+this.fmtPct(c.parsed.y) } : { label:(c)=> c.dataset.label+': '+this.fmtNum(c.parsed.y) } } },
+          tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', footerColor:'#FFFFFF', footerFont:{family:'Neue Montreal',weight:'700'}, borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
+            callbacks: { label:(c)=> c.dataset.yAxisID==='y1' ? (c.dataset.label+': R$ '+this.fmtNum(c.parsed.y)) : (c.dataset.label+': '+(opts.pct?this.fmtPct(c.parsed.y):this.fmtNum(c.parsed.y))), footer:(items)=> opts.footer? opts.footer(items) : '' } } },
         scales:{
           x:{ grid:{ display:false }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
-          y:{ beginAtZero: !!opts.zero, grid:{ color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', callback: opts.pct? (v)=>this.fmtPct(v) : (v)=> this.fmtNum(v) } }
+          y:{ beginAtZero: !!opts.zero, grid:{ color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#6B746A', callback: opts.pct? (v)=>this.fmtPct(v) : (v)=> this.fmtNum(v) } },
+          ...(opts.y1? { y1:{ position:'right', beginAtZero:true, grid:{ display:false }, ticks:{ font:{family:'Neue Montreal', size:10}, color:'#172219', callback:(v)=>'R$ '+this.fmtNum(v) } } } : {})
         }
       }
     };
@@ -1639,10 +1737,37 @@ class Component extends DCLogic {
     const S=this.state;
     const salesKeys = this.salesProductKeys();
     const curProd = (salesKeys.indexOf(S.product)>=0? S.product : salesKeys[0]);
-    const effKey = S.campaign==='vendas' ? curProd : S.campaign;
-    const products = salesKeys.map(k=>({ label:k.toUpperCase(), active:k===curProd, inactive:k!==curProd, onClick:()=>this.setProduct(k) }));
-    const showProductFilter = S.campaign==='vendas';
-    const campProps = showProductFilter ? {showCampFilter:false, campOptions:[], campFilterValue:'all', onCampFilter:()=>{}} : this.campFilterProps(effKey);
+    const isLeads = S.campaign==='leads';
+    const isAndamento = S.campaign==='andamento';
+    const leadKeys = isLeads ? this.leadsProductKeys() : [];
+    const curLead = (leadKeys.indexOf(S.leadsProduct)>=0? S.leadsProduct : 'all');
+    const andaKeys = isAndamento ? this.leadsProductKeys() : [];
+    const curAnda = (andaKeys.indexOf(S.andaProduct)>=0? S.andaProduct : 'all');
+    let effKey = S.campaign==='vendas' ? curProd : S.campaign;
+    let invKey = effKey, invProd, andaAud='all';
+    let products, showProductFilter, campProps, audFilter=[], showAudFilter=false;
+    if(S.campaign==='vendas'){
+      products = salesKeys.map(k=>({ label:k.toUpperCase(), active:k===curProd, inactive:k!==curProd, onClick:()=>this.setProduct(k) }));
+      showProductFilter = true;
+      campProps = this.campFilterProps(curProd);
+    } else if(isLeads){
+      products = leadKeys.map(k=>({ label:k==='all'?'Todas':k.toUpperCase(), active:k===curLead, inactive:k!==curLead, onClick:()=>this.setLeadsProduct(k) }));
+      showProductFilter = leadKeys.length>1;
+      campProps = this.campFilterProps('leads', curLead);
+    } else if(isAndamento){
+      invKey='leads'; effKey='leads'; invProd='cef';
+      andaAud = ['frio','quente'].indexOf(S.andaAud)>=0 ? S.andaAud : 'all';
+      const audBtn=(k,label)=>({ label, active:andaAud===k, inactive:andaAud!==k, onClick:()=>this.setState({andaAud:k}) });
+      audFilter = [ audBtn('all','Todas'), audBtn('frio','Público frio'), audBtn('quente','Público quente') ];
+      showAudFilter = true;
+      products = [];
+      showProductFilter = false;
+      campProps = { showCampFilter:false, campOptions:[], campFilterValue:'all', onCampFilter:()=>{} };
+    } else {
+      products = [];
+      showProductFilter = false;
+      campProps = this.campFilterProps(effKey);
+    }
     const funnelTabs=this.CAMPAIGNS.map(f=>({ label:f.name, active:f.key===S.campaign, inactive:f.key!==S.campaign,
       onClick:()=>this.setCampaign(f.key) }));
     // intervalo de datas e meses derivados dos próprios dados da página (anúncios + vendas)
@@ -1663,21 +1788,64 @@ class Component extends DCLogic {
     const dataReady = (Object.keys(S.sales||{}).length>0) || !!(S.adRows&&S.adRows.length);
     if(!dataReady){
       this._funnelCfgs=null;
-      return { funnelTabs, products, showProductFilter, ...campProps, candFilters, candStatusBtns:[], candReady:false, candLoadingView:true,
+      return { funnelTabs, products, showProductFilter, audFilter, showAudFilter, ...campProps, candFilters, candStatusBtns:[], candReady:false, candLoadingView:true,
         ...this.investFunnel(effKey), ...this.salesInfo(effKey),
         candStatusLabel: S.salesError? ('erro ao ler as vendas: '+S.salesError).slice(0,90) : (S.adsError? ('erro nos anúncios: '+S.adsError).slice(0,90) : 'carregando dados…'),
         candKpis:[], candStatus:[], candCharts:[] };
     }
     this._funnelCfgs={};
     const sales=this.salesInfo(effKey);
-    const inv=this.investFunnel(effKey);
-    return { funnelTabs, products, showProductFilter, ...campProps, candFilters, candStatusBtns:[], candReady:true, candLoadingView:false,
-      ...sales, candStatusLabel:'',
+    let sheetLeads=null;
+    if(isAndamento){ const ir=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; }; sheetLeads=(S.signups||[]).filter(x=>ir(x.date)).length; }
+    const inv=this.investFunnel(invKey, undefined, invProd, isAndamento?andaAud:undefined, sheetLeads);
+    // Cadastros por dia (aba Em andamento) — da planilha, filtrado pela mesma janela de datas
+    let signupsShow=false, signupsKpis=[], signupsStatus='', budgetBar=null;
+    if(isAndamento){
+      signupsShow=true;
+      const inRangeS=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+      const sg=(S.signups||[]).filter(x=>inRangeS(x.date));
+      const dayMap={}; sg.forEach(x=>{ dayMap[x.date]=(dayMap[x.date]||0)+1; });
+      // investimento diário (leads/CEF), mesma janela
+      const spendMap={};
+      (S.adRows||[]).forEach(r=>{ if(r.c==='leads' && inRangeS(r.d) && this.prodTok(r.camp)==='cef' && (andaAud==='all' || this.audKind(r.camp)===andaAud)){ spendMap[r.d]=(spendMap[r.d]||0)+(r.spend||0); } });
+      const dts=Object.keys(dayMap).sort(); const labels=[], data=[], spendData=[];
+      if(dts.length){ let cur=dts[0]; const last=dts[dts.length-1]; let guard=0; while(cur<=last && guard<800){ labels.push(this.ddmm(cur)); data.push(dayMap[cur]||0); spendData.push(Math.round(spendMap[cur]||0)); cur=this.addDays(cur,1); guard++; } }
+      this._funnelCfgs['signups-daily']=this.lineCfg(labels, [
+        {label:'cadastros', data, color:'#172219', fill:true, fillColor:'rgba(23,34,25,0.08)'},
+        {label:'investimento (R$)', data:spendData, color:'#172219', fill:false, axis:'y1', dash:[5,4]},
+      ], {zero:true, y1:true, footer:(items)=>{ const i=items&&items[0]?items[0].dataIndex:-1; if(i<0) return ''; const sp=spendData[i]||0, c=data[i]||0; return 'custo por lead: '+(c? ('R$ '+(sp/c).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})) : '—'); }});
+      const total=sg.length, days=labels.length||1, avg=Math.round(total/days);
+      let best={n:-1,date:null}; Object.entries(dayMap).forEach(([d,n])=>{ if(n>best.n) best={n,date:d}; });
+      // Melhor hora — hora do dia com mais cadastros (janela do filtro), indica quando reforçar o orçamento
+      const hourMap={}; sg.forEach(x=>{ if(x.hour!=null && !isNaN(x.hour)){ hourMap[x.hour]=(hourMap[x.hour]||0)+1; } });
+      let bh={h:null,n:-1}; Object.entries(hourMap).forEach(([h,n])=>{ if(n>bh.n) bh={h:+h,n}; });
+      const melhorHora = bh.h!=null ? (String(bh.h).padStart(2,'0')+'h–'+String((bh.h+1)%24).padStart(2,'0')+'h') : '—';
+      // Dias faltantes até a aula (25/07/2026), relativo ao dia de atualização (hoje)
+      const classDay=new Date(Date.UTC(2026,6,25));
+      const nd=new Date(); const todayUTC=new Date(Date.UTC(nd.getFullYear(),nd.getMonth(),nd.getDate()));
+      const diasFalt=Math.max(0, Math.round((classDay-todayUTC)/86400000));
+      // Orçamento de tráfego: R$ 3.000 (total CEF investido na janela)
+      let investedTotal=0; (S.adRows||[]).forEach(r=>{ if(r.c==='leads' && inRangeS(r.d) && this.prodTok(r.camp)==='cef'){ investedTotal+=(r.spend||0); } });
+      const BUDGET=3000; const invR=Math.round(investedTotal); const pct=BUDGET? investedTotal/BUDGET*100 : 0; const remaining=Math.max(0, BUDGET-investedTotal);
+      budgetBar={ show:true, pctW:Math.max(0,Math.min(100,pct)), pctLabel:this.fmtPct(pct), budget:'R$ '+this.fmtNum(BUDGET),
+        invested:'R$ '+this.fmtNum(invR), remaining:'R$ '+this.fmtNum(Math.round(remaining)), over:pct>100,
+        title:'Investido: R$ '+this.fmtNum(invR)+' de R$ '+this.fmtNum(BUDGET)+'  ·  Restante: R$ '+this.fmtNum(Math.round(remaining)) };
+      signupsKpis=[
+        {label:'Cadastros no período', value:this.fmtNum(total)},
+        {label:'Média por dia', value:this.fmtNum(avg)},
+        {label:'Melhor dia', value:best.date? this.fmtNum(best.n):'—'},
+        {label:'Melhor hora', value:melhorHora},
+        {label:'Dias faltantes', value:this.fmtNum(diasFalt)},
+      ];
+      signupsStatus = S.signups==null ? (S.signupsError? ('erro: '+S.signupsError).slice(0,80) : 'carregando cadastros…') : (total? '' : 'sem cadastros no período');
+    }
+    return { funnelTabs, products, showProductFilter, audFilter, showAudFilter, ...campProps, candFilters, candStatusBtns:[], candReady:true, candLoadingView:false,
+      ...sales, candStatusLabel:'', signupsShow, signupsKpis, signupsStatus, budgetBar,
       volEyebrow:'Por dia', volTitle:'', candKpis:[], candStatus:[], candCharts:[], ...inv };
   }
 
   // Investimento da campanha — Facebook Ads (por produto: WA/Reset/Ciclo/Essência).
-  investFunnel(key, total){
+  investFunnel(key, total, prodOverride, audOverride, sheetLeads){
     if(key==='perfil') return this.perfilFunnel();
     if(key!=='leads' && (!key || key==='vendas')){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', adsStatus:'' }; }
     const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1685,7 +1853,8 @@ class Component extends DCLogic {
     // respeita os filtros de mês / intervalo de datas da página
     const inRange=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
     const cf=S.campFilter||'all';
-    const rows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && (cf==='all' || r.camp===cf));
+    const lp = prodOverride!=null ? prodOverride : ((key==='leads' && this.leadsProductKeys().indexOf(S.leadsProduct)>=0) ? S.leadsProduct : 'all');
+    const rows=(S.adRows||[]).filter(r=> r.c===key && inRange(r.d) && (cf==='all' || r.camp===cf) && (lp==='all' || this.prodTok(r.camp)===lp) && (!audOverride || audOverride==='all' || this.audKind(r.camp)===audOverride));
     const isEng = false;
     const kind = this.kindOf(key);
     const byAd={}, byAdset={};
@@ -1743,7 +1912,7 @@ class Component extends DCLogic {
         { label:'Impressões', value:impressoes, freq:div(impressoes,alcance), cost:null },
         { label:'Cliques no link', value:cliques, conv:div(cliques,impressoes), cost:money2(cpc) },
         { label:'Visualizações da página', value:lpViews, conv:div(lpViews,cliques), cost:null },
-        { label:'Leads', value:leadsGer, conv:div(leadsGer,lpViews), cost:money2(cpl) },
+        { label: sheetLeads!=null?'Leads do gerenciador':'Leads', value:leadsGer, conv:div(leadsGer,lpViews), cost:money2(cpl) },
       ];
       investStats=[
         { label:'Investimento', value:'R$ '+this.fmtNum(investido) },
