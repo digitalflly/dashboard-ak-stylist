@@ -439,8 +439,8 @@
           </div>
         </div>
         </sc-if>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin:0 0 16px;">
-          <sc-for list="{{ signupsKpis }}" as="k" hint-placeholder-count="3">
+        <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; margin:0 0 16px;">
+          <sc-for list="{{ signupsKpis }}" as="k" hint-placeholder-count="6">
             <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
               <div style="font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); line-height:1.3;">{{ k.label }}</div>
               <div data-keepcase="1" style="font-size:19px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em;">{{ k.value }}</div>
@@ -454,6 +454,49 @@
             <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ signupsStatus }}</span>
           </div>
           <div style="height:230px; position:relative;"><canvas id="signups-daily"></canvas></div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ imersaoShow }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:18px 0 14px;">
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Informações gerais</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:10px; margin:0 0 20px;">
+          <sc-for list="{{ imersaoKpis }}" as="k" hint-placeholder-count="9">
+            <div class="b-card" style="padding:12px 12px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
+              <div style="font-size:9.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); line-height:1.25;">{{ k.label }}</div>
+              <div data-keepcase="1" style="font-size:16px; font-weight:600; color:var(--text-strong); letter-spacing:-0.02em; line-height:1.15;">{{ k.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="b-card" style="padding:22px 24px; margin-bottom:16px; overflow-x:auto;">
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong);">Indicadores por dia</div>
+            <span data-keepcase="1" style="font-size:11px; color:var(--text-muted);">{{ imersaoStatus }}</span>
+          </div>
+          <table style="width:100%; border-collapse:collapse; font-size:13px; min-width:720px;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-strong);">
+                <sc-for list="{{ imersaoCols }}" as="c" hint-placeholder-count="8">
+                  <th data-keepcase="1" style="text-align:right; padding:8px 10px; font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); font-weight:500; white-space:nowrap;">{{ c }}</th>
+                </sc-for>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ imersaoRows }}" as="r" hint-placeholder-count="8">
+                <tr style="border-bottom:1px solid var(--border-soft);">
+                  <td data-keepcase="1" style="text-align:left; padding:9px 10px; color:var(--text-strong); font-weight:600; white-space:nowrap;">{{ r.dia }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body); white-space:nowrap;">{{ r.invest }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body);">{{ r.ingressos }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body);">{{ r.orderbumps }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body);">{{ r.conv }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body); white-space:nowrap;">{{ r.faturamento }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body); white-space:nowrap;">{{ r.ticket }}</td>
+                  <td data-keepcase="1" style="text-align:right; padding:9px 10px; color:var(--text-body); white-space:nowrap;">{{ r.custo }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
         </div>
         </sc-if>
 
@@ -508,7 +551,7 @@
         <div style="border-top:1px solid var(--border-soft); margin:26px 0 18px; padding-top:24px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
           <div>
             <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted); margin-bottom:2px;">{{ investEyebrow }}</div>
-            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">Investimento em tráfego pago</div>
+            <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:22px; color:var(--text-strong);">{{ investTitle }}</div>
           </div>
           <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
             <sc-if value="{{ showCampFilter }}" hint-placeholder-val="{{ false }}">
@@ -536,6 +579,13 @@
             </sc-if>
           </div>
         </div>
+        <sc-if value="{{ imersaoShow }}" hint-placeholder-val="{{ false }}">
+        <div class="b-card" style="padding:22px 24px; margin-bottom:16px;">
+          <div style="font-size:11px; letter-spacing:var(--ls-label); text-transform:uppercase; color:var(--text-muted);">Por dia</div>
+          <div style="font-family:var(--font-sans); font-weight:600; letter-spacing:-0.01em; font-size:18px; color:var(--text-strong); line-height:1.15; margin-bottom:12px;">Ingressos por dia</div>
+          <div style="height:260px; position:relative;"><canvas id="imersao-daily"></canvas></div>
+        </div>
+        </sc-if>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
           <sc-for list="{{ investStats }}" as="st" hint-placeholder-count="5">
             <div class="b-card" style="padding:14px 16px; min-height:88px; display:flex; flex-direction:column; justify-content:space-between; border-top:3px solid #172219;">
@@ -756,6 +806,8 @@ class Component extends DCLogic {
       andaProduct: 'all',
       signups: null,
       signupsError: '',
+      imersao: null,
+      imersaoError: '',
       campFilter: 'all',
       andaAud: 'all',
       adSort: {key:'impr', dir:-1},
@@ -786,22 +838,42 @@ class Component extends DCLogic {
       perfil: /tr[aá]fego para perfil|\[VISITA\]|aumento de base/i,
     };
     // Como cada bucket se comporta no funil de investimento.
-    this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', leads:'leads', andamento:'leads', perfil:'profile' };
-    this.ADS_CKEY = 'akAdsCampaigns:v10';
+    this.CAMPAIGN_KIND = { sdm:'sales', sfc:'sales', tdd:'sales', edo:'sales', leads:'leads', andamento:'leads', perfil:'profile' };
+    this.ADS_CKEY = 'akAdsCampaigns:v12';
     this.ADS_SEED_FROM = '2025-01-01';
     this.HAS_SALES_SHEET = false; // AK não tem planilha Eduzz — abas de venda mostram só o funil de anúncios
     this.SALES_SHEETS = {};
     this.SALES_PROD_TAB = {};
     this.SALES_CKEY = 'akSales:v1';
+    // Fechamento da campanha CEF (aba "Em andamento") — números de fechamento do lançamento.
+    // cadastros vem ao vivo da planilha; os demais são editáveis aqui.
+    this.FECHAMENTO_CEF = {
+      pesquisa: 583,          // leads na pesquisa (respostas na base completa)
+      comparecimento: 17.7,   // taxa de comparecimento (%)
+      compras: 5,             // compras (viraram alunas)
+      faturamento: 53000,     // faturamento até agora (R$)
+      roas: 22.2             // ROAS (x) — null p/ calcular faturamento/investido
+    };
     // Abas da página "Dados das Campanhas": vendas por produto + Leads + Perfil/Visitas.
     this.CAMPAIGNS = [
       { key:'vendas', name:'Vendas' },
       { key:'leads', name:'Leads' },
       { key:'perfil', name:'Novos Seguidores' },
-      { key:'andamento', name:'Em andamento - CEF' },
+      { key:'andamento', name:'Consultora de estilo do futuro' },
+      { key:'edo', name:'Estratégia de ouro' },
     ];
     // Cadastros ao vivo (Google Sheet) para a aba "Em andamento".
     this.SIGNUPS_SHEET = { id:'1m_XMiUkpu6Ons124EbzU4rKj8lUtiOEWJMuH3GPPGso', gid:'1859489336' };
+    // Planilha da Imersão paga (EDO) — ingressos/faturamento/orderbumps por dia.
+    // TODO: trocar pelo link da pasta do Drive da imersão paga quando estiver pronta (hoje aponta p/ a mesma da gratuita).
+    this.PAID_SHEET = { id:'1m_XMiUkpu6Ons124EbzU4rKj8lUtiOEWJMuH3GPPGso', gid:'1859489336' };
+    this.IMERSAO = { impostoFactor: 1.1215 }; // investimento com imposto = investimento do funil × fator
+    // Tabela diária de vendas da Estratégia de ouro (EDO) — arquivo trocado periodicamente na pasta do Drive.
+    // Opção B: cada troca gera novo ID; atualizar VENDAS_SHEET.id quando o arquivo for substituído.
+    // (pasta: 1nYzkDwXhdfkz9FrryOi2u3uN0V_24UoU) — colar aqui o ID do arquivo/planilha atual.
+    this.VENDAS_SHEET = { id:'1Gq3QeXToaBiFtGnZ1smPuzjKKFqdb-6_', gid:'2140786258' };
+    this.PROD_INGRESSO = 'Imersão Estratégia de Ouro';
+    this.PROD_ORDERBUMP = 'Modelos de Conteúdo';
     // Sub-filtro "Produtos" dentro da aba Vendas (SDM / SFC / TDD).
     this.PRODUCTS = [
       { key:'sdm', name:'SDM' },
@@ -1276,7 +1348,7 @@ class Component extends DCLogic {
   }
 
   /* ============ CHARTS ============ */
-  componentDidMount(){ this.drawCharts(); if(this.TEMPLATE_MODE){ this.loadExampleData(); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(); this.loadSignups(); }
+  componentDidMount(){ this.drawCharts(); if(this.TEMPLATE_MODE){ this.loadExampleData(); return; } this.fetchLive(); this.fetchAds(); this.fetchDemographics(); this.loadSignups(); this.loadImersao(); this.loadImersaoVendas(); }
 
   // Cadastros ao vivo (Google Sheet) — cada linha = 1 cadastro; agregamos por dia.
   async loadSignups(){
@@ -1290,6 +1362,43 @@ class Component extends DCLogic {
       rows.forEach(r=>{ const raw=r[di]||''; const m=String(raw).match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m){ const hm=String(raw).match(/\b(\d{1,2}):(\d{2})/); out.push({ date:m[3]+'-'+m[2]+'-'+m[1], hour: hm? parseInt(hm[1],10) : null }); } });
       this.setState({signups:out, signupsError:''});
     }catch(e){ this.setState({signupsError:(e&&e.message)||'Falha ao ler cadastros.'}); }
+  }
+
+  parseMoney(v){ if(v==null) return 0; const s=String(v).replace(/[^0-9,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.'); const n=parseFloat(s); return isNaN(n)?0:n; }
+
+  // Imersão paga (Google Sheet) — cada linha = 1 ingresso; capturamos data, faturamento e orderbump.
+  async loadImersao(){
+    try{
+      const {id,gid}=this.PAID_SHEET;
+      const url='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&gid='+gid+'&_cb='+Date.now();
+      const txt=await (await fetch(url,{cache:'no-store'})).text();
+      const rows=this.parseCSV(txt); const header=rows.shift()||[];
+      let di=header.findIndex(h=>/data\s*\/\s*hora|data|hora/i.test(h)); if(di<0) di=3;
+      let fi=header.findIndex(h=>/faturamento|valor|pre[\u00e7c]o|total/i.test(h));
+      let oi=header.findIndex(h=>/order\s*bump|orderbump|bump/i.test(h));
+      const out=[];
+      rows.forEach(r=>{ const raw=r[di]||''; const m=String(raw).match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m){
+        const fat= fi>=0 ? this.parseMoney(r[fi]) : 0;
+        const ob = oi>=0 ? (this.parseMoney(r[oi])>0?1:0) : 0;
+        out.push({ date:m[3]+'-'+m[2]+'-'+m[1], fat, ob }); } });
+      this.setState({imersao:out, imersaoError:''});
+    }catch(e){ this.setState({imersaoError:(e&&e.message)||'Falha ao ler a planilha.'}); }
+  }
+
+  // Tabela diária de vendas (Estratégia de ouro) — lê a planilha atual da pasta do Drive (Opção B).
+  async loadImersaoVendas(){
+    const cfg=this.VENDAS_SHEET||{}; if(!cfg.id){ return; }
+    try{
+      const url='https://docs.google.com/spreadsheets/d/'+cfg.id+'/gviz/tq?tqx=out:csv&gid='+(cfg.gid||'0')+'&_cb='+Date.now();
+      const txt=await (await fetch(url,{cache:'no-store'})).text();
+      const rows=this.parseCSV(txt); const header=rows.shift()||[];
+      const idx=(re)=>header.findIndex(h=>re.test(h));
+      const pi=idx(/^produto$/i), si=idx(/^status$/i), di=idx(/data de cria/i), vi=idx(/pre[çc]o base do produto/i);
+      const out=[];
+      rows.forEach(r=>{ const st=String(r[si]||'').toLowerCase(); if(st!=='paid') return; const raw=String(r[di]||''); const m=raw.match(/(\d{2})\/(\d{2})\/(\d{4})/); if(!m) return;
+        out.push({ date:m[3]+'-'+m[2]+'-'+m[1], produto:String(r[pi]||'').trim(), valor:this.parseMoney(r[vi]) }); });
+      this.setState({vendasDia:out, vendasDiaError:''});
+    }catch(e){ this.setState({vendasDiaError:(e&&e.message)||'Falha ao ler a planilha de vendas.'}); }
   }
 
   // Facebook Ads (Windsor) — campanhas por produto (WA/Reset/Ciclo/Essência).
@@ -1332,7 +1441,8 @@ class Component extends DCLogic {
         // busca em blocos mensais para não estourar o limite de payload do Windsor (que trunca a granularidade)
         const chunks=[]; let cur=new Date(fromStr+'T00:00:00Z'); const end=new Date(toStr+'T00:00:00Z');
         while(cur<=end){ const y=cur.getUTCFullYear(), m=cur.getUTCMonth(); const cs=ymd(new Date(Date.UTC(y,m,1))); let ce=ymd(new Date(Date.UTC(y,m+1,0))); if(ce>toStr) ce=toStr; const csi=cs<fromStr?fromStr:cs; chunks.push([csi,ce]); cur=new Date(Date.UTC(y,m+1,1)); }
-        for(const [a,b] of chunks){ ingest(store, await fetchRange(a,b)); }
+        const results=await Promise.all(chunks.map(([a,b])=>fetchRange(a,b)));
+        results.forEach(rows=>ingest(store, rows));
       };
       const today=new Date(); const todayStr=ymd(today);
       let store={}, cached=null;
@@ -1366,7 +1476,7 @@ class Component extends DCLogic {
     return {start:minD||'', end:maxD||''};
   }
   parseRowDate(s){ const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m) return m[3]+'-'+m[2]+'-'+m[1]; const m2=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); return m2? m2[0]:null; }
-  setCampaign(key){ this.setState({campaign:key, campFilter:'all'}); }
+  setCampaign(key){ this.setState({campaign:key, campFilter:'all'}); if(key==='edo'){ this.loadImersaoVendas(); } }
   setProduct(key){ this.setState({product:key}); }
   // Como cada bucket se comporta no funil (dinâmico: qualquer produto de venda entra como 'sales').
   kindOf(key){ if(key==='leads') return 'leads'; if(key==='perfil') return 'profile'; return 'sales'; }
@@ -1808,7 +1918,8 @@ class Component extends DCLogic {
     let signupsShow=false, signupsKpis=[], signupsStatus='', budgetBar=null;
     if(isAndamento){
       signupsShow=true;
-      const inRangeS=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+      const CEF_END='2026-07-25';
+      const inRangeS=(d)=>{ if(!d) return false; if(d>CEF_END) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
       const sg=(S.signups||[]).filter(x=>inRangeS(x.date));
       const dayMap={}; sg.forEach(x=>{ dayMap[x.date]=(dayMap[x.date]||0)+1; });
       // investimento diário (leads/CEF), mesma janela
@@ -1833,27 +1944,85 @@ class Component extends DCLogic {
       // Orçamento de tráfego: R$ 3.000 (total CEF investido na janela)
       let investedTotal=0; (S.adRows||[]).forEach(r=>{ if(r.c==='leads' && inRangeS(r.d) && this.prodTok(r.camp)==='cef'){ investedTotal+=(r.spend||0); } });
       const BUDGET=3000; const invR=Math.round(investedTotal); const pct=BUDGET? investedTotal/BUDGET*100 : 0; const remaining=Math.max(0, BUDGET-investedTotal);
-      budgetBar={ show:true, pctW:Math.max(0,Math.min(100,pct)), pctLabel:this.fmtPct(pct), budget:'R$ '+this.fmtNum(BUDGET),
+      budgetBar={ show:false, pctW:Math.max(0,Math.min(100,pct)), pctLabel:this.fmtPct(pct), budget:'R$ '+this.fmtNum(BUDGET),
         invested:'R$ '+this.fmtNum(invR), remaining:'R$ '+this.fmtNum(Math.round(remaining)), over:pct>100,
         title:'Investido: R$ '+this.fmtNum(invR)+' de R$ '+this.fmtNum(BUDGET)+'  ·  Restante: R$ '+this.fmtNum(Math.round(remaining)) };
+      const F=this.FECHAMENTO_CEF||{};
+      const roasF = (F.roas!=null) ? F.roas : (investedTotal? (F.faturamento||0)/investedTotal : 0);
       signupsKpis=[
-        {label:'Cadastros no período', value:this.fmtNum(total)},
-        {label:'Média por dia', value:this.fmtNum(avg)},
-        {label:'Melhor dia', value:best.date? this.fmtNum(best.n):'—'},
-        {label:'Melhor hora', value:melhorHora},
-        {label:'Dias faltantes', value:this.fmtNum(diasFalt)},
+        {label:'Cadastros', value:this.fmtNum(total)},
+        {label:'Leads na pesquisa', value:this.fmtNum(F.pesquisa||0)},
+        {label:'Taxa de comparecimento', value:(F.comparecimento||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'},
+        {label:'Compras', value:this.fmtNum(F.compras||0)},
+        {label:'Faturamento', value:'R$ '+this.fmtNum(F.faturamento||0)},
+        {label:'ROAS', value:roasF.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'x'},
       ];
       signupsStatus = S.signups==null ? (S.signupsError? ('erro: '+S.signupsError).slice(0,80) : 'carregando cadastros…') : (total? '' : 'sem cadastros no período');
     }
+    // ===== Imersão paga (EDO) — seção "informações gerais" + indicadores por dia + ingressos por dia =====
+    let imersaoShow=false, imersaoKpis=[], imersaoRows=[], imersaoStatus='', imersaoCols=[];
+    if(S.campaign==='edo'){
+      imersaoShow=true;
+      const ir=(d)=>{ if(!d) return false; if(S.candMonth!=='all' && d.slice(0,7)!==S.candMonth) return false; if(S.candFrom && d<S.candFrom) return false; if(S.candTo && d>S.candTo) return false; return true; };
+      const impF=(this.IMERSAO&&this.IMERSAO.impostoFactor)||1;
+      const mainP=this.PROD_INGRESSO, bumpP=this.PROD_ORDERBUMP;
+      // Vendas reais da planilha (Kiwify): ingressos = produto principal; orderbumps = Modelos de Conteúdo.
+      const dm={}; (S.vendasDia||[]).forEach(x=>{ if(!ir(x.date)) return; const k=x.date; if(!dm[k]) dm[k]={ing:0,ob:0,fat:0,spend:0}; if(x.produto===bumpP){ dm[k].ob++; dm[k].fat+=(x.valor||0); } else { dm[k].ing++; dm[k].fat+=(x.valor||0); } });
+      // gasto EDO por dia (Windsor)
+      (S.adRows||[]).forEach(r=>{ if(r.c==='edo' && ir(r.d)){ if(!dm[r.d]) dm[r.d]={ing:0,ob:0,fat:0,spend:0}; dm[r.d].spend+=(r.spend||0); } });
+      const spendMap={}; Object.keys(dm).forEach(k=>spendMap[k]=dm[k].spend);
+      const ingTot=Object.values(dm).reduce((a,o)=>a+o.ing,0), obTot=Object.values(dm).reduce((a,o)=>a+o.ob,0), fatTot=Object.values(dm).reduce((a,o)=>a+o.fat,0);
+      let spendTot=0; Object.values(spendMap).forEach(v=>spendTot+=v);
+      const invImposto=spendTot*impF;
+      const diasVendas=Object.values(dm).filter(o=>o.ing>0||o.ob>0).length||1;
+      const money=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const pct1=(v)=>(v||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+      const roasIm = spendTot? fatTot/spendTot : 0;
+      imersaoKpis=[
+        {label:'Investimento com imposto', value:money(invImposto)},
+        {label:'Ingressos', value:this.fmtNum(ingTot)},
+        {label:'Faturamento bruto aprox.', value:money(fatTot)},
+        {label:'Orderbumps', value:this.fmtNum(obTot)},
+        {label:'Taxa de conversão orderbump', value:pct1(ingTot? obTot/ingTot*100:0)},
+        {label:'Ritmo médio', value:(ingTot/diasVendas).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' /dia'},
+        {label:'Ticket médio', value:money(ingTot? fatTot/ingTot:0)},
+        {label:'Custo / compra geral', value:money(ingTot? invImposto/ingTot:0)},
+        {label:'ROAS', value:roasIm.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'x'},
+      ];
+      imersaoCols=['Dia','Invest. c/ imposto','Ingressos','Orderbumps','Conv. orderbump','Faturamento','Ticket médio','Custo/compra'];
+      const days=Object.keys(dm).sort().reverse();
+      imersaoRows=days.map(d=>{ const o=dm[d]; const sp=o.spend*impF; return {
+        dia:this.ddmm(d), invest:money(sp), ingressos:this.fmtNum(o.ing), orderbumps:this.fmtNum(o.ob), conv:pct1(o.ing? o.ob/o.ing*100:0), faturamento:money(o.fat),
+        ticket:money(o.ing? o.fat/o.ing:0), custo:money(o.ing? sp/o.ing:0) }; });
+      // gráfico ingressos por dia (barras) + custo/compra (linha)
+      const dts=Object.keys(dm).sort(); const labels=[], ingArr=[], custoArr=[];
+      if(dts.length){ let cur=dts[0]; const last=dts[dts.length-1]; let g=0; while(cur<=last && g<800){ const o=dm[cur]||{ing:0,spend:0}; const sp=(o.spend||0)*impF; labels.push(this.ddmm(cur)); ingArr.push(o.ing||0); custoArr.push(o.ing? Math.round(sp/o.ing):0); cur=this.addDays(cur,1); g++; } }
+      this._funnelCfgs['imersao-daily']={
+        type:'bar',
+        data:{ labels, datasets:[
+          { type:'bar', label:'ingressos', data:ingArr, backgroundColor:'#172219', borderRadius:3, maxBarThickness:34, yAxisID:'y', order:2 },
+          { type:'line', label:'custo/compra', data:custoArr, borderColor:'#9A8C6A', backgroundColor:'#9A8C6A', borderWidth:2, pointRadius:3, pointBackgroundColor:'#9A8C6A', tension:0.35, yAxisID:'y1', order:1 },
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+          plugins:{ legend:{ display:true, position:'top', align:'end', labels:{ boxWidth:10, boxHeight:10, usePointStyle:true, font:{family:'Neue Montreal',size:11}, color:'#6B746A' } },
+            tooltip:{ backgroundColor:'#172219', titleColor:'#FFFDF7', bodyColor:'#D8DCD4', borderColor:'#2C3A2E', borderWidth:1, padding:10, cornerRadius:8, titleFont:{family:'Neue Montreal',weight:'600'}, bodyFont:{family:'Neue Montreal'},
+              callbacks:{ label:(c)=> c.dataset.yAxisID==='y1' ? (c.dataset.label+': R$ '+this.fmtNum(c.parsed.y)) : (c.dataset.label+': '+this.fmtNum(c.parsed.y)) } } },
+          scales:{ x:{ grid:{display:false}, ticks:{ font:{family:'Neue Montreal',size:10}, color:'#6B746A', maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
+            y:{ beginAtZero:true, grid:{ color:'rgba(23,34,25,0.07)' }, ticks:{ font:{family:'Neue Montreal',size:10}, color:'#6B746A', precision:0 } },
+            y1:{ position:'right', beginAtZero:true, grid:{display:false}, ticks:{ font:{family:'Neue Montreal',size:10}, color:'#9A8C6A', callback:(v)=>'R$ '+this.fmtNum(v) } } } }
+      };
+      imersaoStatus = (S.vendasDia==null && S.adsLoading) ? 'carregando vendas…' : ((S.vendasDiaError)? ('erro: '+S.vendasDiaError).slice(0,80) : (ingTot||obTot? '' : 'sem vendas no período'));
+    }
     return { funnelTabs, products, showProductFilter, audFilter, showAudFilter, ...campProps, candFilters, candStatusBtns:[], candReady:true, candLoadingView:false,
       ...sales, candStatusLabel:'', signupsShow, signupsKpis, signupsStatus, budgetBar,
+      imersaoShow, imersaoKpis, imersaoRows, imersaoCols, imersaoStatus,
       volEyebrow:'Por dia', volTitle:'', candKpis:[], candStatus:[], candCharts:[], ...inv };
   }
 
   // Investimento da campanha — Facebook Ads (por produto: WA/Reset/Ciclo/Essência).
   investFunnel(key, total, prodOverride, audOverride, sheetLeads){
     if(key==='perfil') return this.perfilFunnel();
-    if(key!=='leads' && (!key || key==='vendas')){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', adsStatus:'' }; }
+    if(key!=='leads' && (!key || key==='vendas')){ return { investShow:false, segMode:false, showAdsets:false, showAds:false, investStages:[], investStats:[], investAds:[], investAdsets:[], investPubs:[], investEyebrow:'', investTitle:'Investimento em tráfego pago', adsStatus:'' }; }
     const money2=(v)=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     const S=this.state;
     // respeita os filtros de mês / intervalo de datas da página
@@ -1990,7 +2159,7 @@ class Component extends DCLogic {
       cr:isEng? this.fmtNum(a.reac) : this.fmtPct(a.linkClicks? a.lpViews/a.linkClicks*100 : 0),
       leads:isEng? this.fmtPct(a.impressions? a.eng/a.impressions*100 : 0) : (kind==='leads'? this.fmtNum(a.leads) : this.fmtNum(a.purch)) }));
     const adsStatus = S.adsError? ('Facebook Ads: '+S.adsError).slice(0,80) : (S.adsLoading? 'carregando campanhas do Facebook…' : (hasReal? '' : 'sem dados para esta campanha'));
-    return { investShow:true, segMode:false, showAdsets:true, showAds:true, investStages, investStats, investAds, investAdsets, investPubs:[], investEyebrow, adsStatus,
+    return { investShow:true, segMode:false, showAdsets:true, showAds:true, investStages, investStats, investAds, investAdsets, investPubs:[], investEyebrow, investTitle:(key==='edo'?'Investimento no funil':'Investimento em tráfego pago'), adsStatus,
       hAd, arAd, hSet, arSet,
       colA2:colAds[0], colA3:colAds[1], colA4:colAds[2], colA5:colAds[3],
       colS2:colSets[0], colS3:colSets[1], colS4:colSets[2], colS5:colSets[3] };
@@ -2186,7 +2355,7 @@ class Component extends DCLogic {
     let budgetItems=pubs.filter(p=>p.spend>0).map(p=>({label:p.name, count:p.spend})).sort((a,b)=>b.count-a.count);
     if(budgetItems.length>10){ const top=budgetItems.slice(0,9); const rest=budgetItems.slice(9).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); budgetItems=top; }
     if(this._funnelCfgs){ this._funnelCfgs['seg-budget']=this.doughnutCfg(budgetItems, {money:true}); }
-    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'perfil / visitas', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus, ...this.pubHeaders() };
+    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'perfil / visitas', investTitle:'Investimento em tráfego pago', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus, ...this.pubHeaders() };
   }
 
   // Novos Seguidores — turbinamento de publicações no Instagram (visitas → seguidores).
@@ -2230,7 +2399,7 @@ class Component extends DCLogic {
     let budgetItems=pubs.filter(p=>p.spend>0).map(p=>({label:p.name, count:p.spend})).sort((a,b)=>b.count-a.count);
     if(budgetItems.length>10){ const top=budgetItems.slice(0,9); const rest=budgetItems.slice(9).reduce((a,x)=>a+x.count,0); top.push({label:'Outros', count:rest}); budgetItems=top; }
     if(this._funnelCfgs){ this._funnelCfgs['seg-budget']=this.doughnutCfg(budgetItems, {money:true}); }
-    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'novos seguidores', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus };
+    return { investShow:true, segMode:true, showAdsets:false, showAds:false, segBudgetShow:budgetItems.length>0, investEyebrow:'novos seguidores', investTitle:'Investimento em tráfego pago', investStages, investStats, investPubs, investAds:[], investAdsets:[], adsStatus };
   }
 
   learnings(valid, followers){
